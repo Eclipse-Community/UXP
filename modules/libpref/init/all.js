@@ -1700,6 +1700,9 @@ pref("network.sts.max_time_for_events_between_two_polls", 100);
 pref("network.sts.max_time_for_pr_close_during_shutdown", 5000);
 // </http>
 
+// <ws>: WebSocket
+pref("network.websocket.enabled", true);
+
 // 2147483647 == PR_INT32_MAX == ~2 GB
 pref("network.websocket.max-message-size", 2147483647);
 
