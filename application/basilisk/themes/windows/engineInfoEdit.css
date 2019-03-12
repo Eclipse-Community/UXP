@@ -1,0 +1,22 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ Based on "Add to Search Bar" addon by Malte Kraus and Gavin Sharp */
+
+#icon {
+  height: 22px;
+  width: 22px;
+  border: 3px none;
+}
+
+/* do not stretch the icon to the available space */
+/*#icon-row, #icon-row > hbox { -moz-box-align: center; }*/
+
+dialog:root {
+  overflow: auto;
+  min-width: 400px;
+}
+
+#icon-row, #icon-row > hbox {
+  -moz-box-align: center; /* do not stretch the icon to the available space */
+}

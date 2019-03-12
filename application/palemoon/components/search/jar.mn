@@ -7,3 +7,5 @@ browser.jar:
   content/browser/search/searchbarBindings.css      (content/searchbarBindings.css)
   content/browser/search/engineManager.xul          (content/engineManager.xul)
   content/browser/search/engineManager.js           (content/engineManager.js)
+        content/browser/search/engineInfoEdit.xul                   (content/engineInfoEdit.xul)
+        content/browser/search/engineInfoEdit.js                    (content/engineInfoEdit.js)
