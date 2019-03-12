@@ -42,7 +42,6 @@
 #include "nsArray.h"
 #include "nsArrayUtils.h"
 #include "nsContentSecurityManager.h"
-#include "nsICaptivePortalService.h"
 #include "nsIDOMStorage.h"
 #include "nsIContentViewer.h"
 #include "nsIDocumentLoaderFactory.h"
@@ -5303,13 +5302,6 @@ nsDocShell::LoadErrorPage(nsIURI* aURI, const char16_t* aURL,
   nsAutoCString frameType(FrameTypeToString(mFrameType));
   errorPageUrl.AppendLiteral("&f=");
   errorPageUrl.AppendASCII(frameType.get());
-
-  nsCOMPtr<nsICaptivePortalService> cps = do_GetService(NS_CAPTIVEPORTAL_CID);
-  int32_t cpsState;
-  if (cps && NS_SUCCEEDED(cps->GetState(&cpsState)) &&
-      cpsState == nsICaptivePortalService::LOCKED_PORTAL) {
-    errorPageUrl.AppendLiteral("&captive=true");
-  }
 
   // netError.xhtml's getDescription only handles the "d" parameter at the
   // end of the URL, so append it last.

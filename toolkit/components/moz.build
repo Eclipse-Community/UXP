@@ -91,8 +91,6 @@ if CONFIG['MOZ_TOOLKIT_SEARCH'] and not CONFIG['MC_BASILISK'] \
 if CONFIG['MOZ_URL_CLASSIFIER']:
     DIRS += ['url-classifier']
 
-DIRS += ['captivedetect']
-
 DIRS += ['terminator']
 
 DIRS += ['build']

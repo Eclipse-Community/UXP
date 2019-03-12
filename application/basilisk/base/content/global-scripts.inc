@@ -11,7 +11,6 @@
 <script type="application/javascript" src="chrome://global/content/viewSourceUtils.js"/>
 
 <script type="application/javascript" src="chrome://browser/content/browser-addons.js"/>
-<script type="application/javascript" src="chrome://browser/content/browser-captivePortal.js"/>
 <script type="application/javascript" src="chrome://browser/content/browser-ctrlTab.js"/>
 <script type="application/javascript" src="chrome://browser/content/browser-customization.js"/>
 <script type="application/javascript" src="chrome://browser/content/browser-feeds.js"/>

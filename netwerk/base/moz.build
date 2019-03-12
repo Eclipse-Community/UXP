@@ -26,7 +26,6 @@ XPIDL_SOURCES += [
     'nsICacheInfoChannel.idl',
     'nsICachingChannel.idl',
     'nsICancelable.idl',
-    'nsICaptivePortalService.idl',
     'nsIChannel.idl',
     'nsIChannelEventSink.idl',
     'nsIChannelWithDivertableParentListener.idl',
@@ -171,7 +170,6 @@ EXPORTS.mozilla += [
 ]
 
 EXPORTS.mozilla.net += [
-    'CaptivePortalService.h',
     'ChannelDiverterChild.h',
     'ChannelDiverterParent.h',
     'Dashboard.h',
@@ -184,7 +182,6 @@ EXPORTS.mozilla.net += [
 UNIFIED_SOURCES += [
     'ArrayBufferInputStream.cpp',
     'BackgroundFileSaver.cpp',
-    'CaptivePortalService.cpp',
     'ChannelDiverterChild.cpp',
     'ChannelDiverterParent.cpp',
     'Dashboard.cpp',

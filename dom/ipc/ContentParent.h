@@ -650,7 +650,6 @@ private:
   virtual bool
   RecvGetXPCOMProcessAttributes(bool* aIsOffline,
                                 bool* aIsConnected,
-                                int32_t* aCaptivePortalState,
                                 bool* aIsLangRTL,
                                 bool* aHaveBidiKeyboards,
                                 InfallibleTArray<nsString>* dictionaries,

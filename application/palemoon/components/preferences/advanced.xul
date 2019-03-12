@@ -49,8 +49,6 @@
                   type="bool"/>
 #endif
       <preference id="pref.general.compatmode" name="general.useragent.compatMode"        type="int"/>
-      
-      <preference id="pref.general.captiveportal" name="network.captive-portal-service.enabled" type="bool"/>
 
       <!-- Network tab -->
       <preference id="network.dns.prefetch"            name="network.dns.disablePrefetch"     type="bool"   inverted="true"/>
@@ -206,7 +204,6 @@
             </hbox>
           </groupbox>
 #endif
-          <!-- User Agent compatibility -->
           <groupbox id="UACompatGroup" orient="vertical">
             <caption label="&UACompatGroup.label;"/>
             <hbox align="center">
