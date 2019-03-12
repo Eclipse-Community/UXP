@@ -21,7 +21,6 @@
 #include "mozilla/Atomics.h"
 #include "mozilla/Attributes.h"
 #include "prtime.h"
-#include "nsICaptivePortalService.h"
 
 #define NS_N(x) (sizeof(x)/sizeof(*x))
 
@@ -96,8 +95,6 @@ public:
 
     static bool BlockFTPSubresources();
 
-    // Used to trigger a recheck of the captive portal status
-    nsresult RecheckCaptivePortal();
 private:
     // These shouldn't be called directly:
     // - construct using GetInstance
@@ -114,9 +111,6 @@ private:
                                                   uint32_t end=0);
     nsresult CacheProtocolHandler(const char *scheme,
                                               nsIProtocolHandler* hdlr);
-
-    nsresult InitializeCaptivePortalService();
-    nsresult RecheckCaptivePortalIfLocalRedirect(nsIChannel* newChan);
 
     // Prefs wrangling
     void PrefsChanged(nsIPrefBranch *prefs, const char *pref = nullptr);
@@ -161,7 +155,6 @@ private:
     nsCOMPtr<nsPISocketTransportService> mSocketTransportService;
     nsCOMPtr<nsPIDNSService>             mDNSService;
     nsCOMPtr<nsIProtocolProxyService2>   mProxyService;
-    nsCOMPtr<nsICaptivePortalService>    mCaptivePortalService;
     nsCOMPtr<nsINetworkLinkService>      mNetworkLinkService;
     bool                                 mNetworkLinkServiceInitialized;
 

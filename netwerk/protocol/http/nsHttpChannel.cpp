@@ -19,7 +19,6 @@
 #include "nsICacheStorageService.h"
 #include "nsICacheStorage.h"
 #include "nsICacheEntry.h"
-#include "nsICaptivePortalService.h"
 #include "nsICryptoHash.h"
 #include "nsINetworkInterceptController.h"
 #include "nsINSSErrorsService.h"
@@ -6495,13 +6494,6 @@ nsHttpChannel::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult st
 
     MOZ_ASSERT(NS_IsMainThread(),
                "OnStopRequest should only be called from the main thread");
-
-    // If this load failed because of a security error, it may be because we
-    // are in a captive portal - trigger an async check to make sure.
-    int32_t nsprError = -1 * NS_ERROR_GET_CODE(status);
-    if (mozilla::psm::IsNSSErrorCode(nsprError)) {
-        gIOService->RecheckCaptivePortal();
-    }
 
     if (mTimingEnabled && request == mCachePump) {
         mCacheReadEnd = TimeStamp::Now();
