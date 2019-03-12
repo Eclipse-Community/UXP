@@ -960,6 +960,11 @@ WebSocket::Constructor(const GlobalObject& aGlobal,
                        const nsAString& aUrl,
                        ErrorResult& aRv)
 {
+  if (!PrefEnabled()) {
+    aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
+    return nullptr;
+  }
+
   Sequence<nsString> protocols;
   return WebSocket::ConstructorCommon(aGlobal, aUrl, protocols, nullptr,
                                       EmptyCString(), aRv);
@@ -1462,6 +1467,11 @@ WebSocketImpl::Init(JSContext* aCx,
 {
   AssertIsOnMainThread();
   MOZ_ASSERT(aPrincipal);
+
+  if (!WebSocket::PrefEnabled()) {
+    aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
+    return;
+  }
 
   mService = WebSocketEventService::GetOrCreate();
 
@@ -2035,6 +2045,11 @@ WebSocket::CreateAndDispatchCloseEvent(bool aWasClean,
   return DispatchDOMEvent(nullptr, event, nullptr, nullptr);
 }
 
+bool
+WebSocket::PrefEnabled()
+{
+  return Preferences::GetBool("network.websocket.enabled", true);
+}
 nsresult
 WebSocketImpl::ParseURL(const nsAString& aURL)
 {
