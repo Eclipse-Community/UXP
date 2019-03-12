@@ -16,6 +16,7 @@
         onload="gEngineManagerDialog.init();"
         onunload="gEngineManagerDialog.destroy();"
         ondialogaccept="gEngineManagerDialog.onOK();"
+        ondialogcancel="gEngineManagerDialog.onCancel();"
         ondialogextra2="gEngineManagerDialog.onRestoreDefaults();"
         title="&engineManager.title;"
         style="&engineManager.style;"
@@ -52,7 +53,7 @@
   <separator class="thin"/>
   <hbox flex="1">
     <tree id="engineList" flex="1" rows="10" hidecolumnpicker="true"
-          seltype="single" onselect="gEngineManagerDialog.onSelect();">
+          seltype="single" onselect="gEngineManagerDialog.onSelect();" ondblclick="gEngineManagerDialog.onDblClick();">
       <treechildren id="engineChildren" flex="1"
                     ondragstart="onDragEngineStart(event);"/>
       <treecols>

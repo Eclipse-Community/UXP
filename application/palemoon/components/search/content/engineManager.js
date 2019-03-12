@@ -57,6 +57,20 @@ var gEngineManagerDialog = {
     }
   },
 
+  onCancel: function () {
+    // restore engine urls
+    let engines = gEngineView._engineStore.engines;
+    for each (let engine in engines) {
+      let ee = engine.originalEngine.wrappedJSObject;
+      for (let url of ee._urls) {
+        for (let name of ["method", "template", "params"]) {
+          let nn = "__new_"+name;
+          if (nn in url) delete url[nn];
+        }
+      }
+    }
+  },
+
   onOK: function() {
     // Set the preference
     var newSuggestEnabled = document.getElementById("enableSuggest").checked;
@@ -64,6 +78,37 @@ var gEngineManagerDialog = {
 
     // Commit the changes
     gEngineView._engineStore.commit();
+
+    let engines = gEngineView._engineStore.engines;
+    for each (let engine in engines) {
+      let ee = engine.originalEngine.wrappedJSObject;
+      for (let url of ee._urls) {
+        for (let name of ["method", "template", "params"]) {
+          let nn = "__new_"+name;
+          if (nn in url) {
+            url[name] = url[nn];
+            delete url[nn];
+          }
+        }
+      }
+      if (ee._name != engine.name) {
+        let oldname = ee._name;
+        engine.originalEngine.name = engine.name;
+        ee.__old_name = ee._name;
+        ee._name = engine.name;
+        Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).notifyObservers(ee, "browser-search-engine-modified", "engine-renamed");
+      }
+      if ("_searchForm" in engine) ee._searchForm = engine._searchForm;
+      if ("_queryCharset" in engine) ee._queryCharset = engine._queryCharset;
+      if (engine.__icon_changed) {
+        Components.utils.reportError("icon for '"+ee._name+"' was changed!");
+        ee._setIcon(engine.iconURI.spec, true);
+      }
+      // inform everybody of the changes, also stores our changes in the cache
+      Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).notifyObservers(ee, "browser-search-engine-modified", "engine-changed");
+      //Tycho doesn't have this; besides, "engine-changed" will do that for us
+      //if (!ee._readOnly) ee._lazySerializeToFile();
+    }
   },
 
   onRestoreDefaults: function() {
@@ -112,47 +157,127 @@ var gEngineManagerDialog = {
 
   editKeyword: Task.async(function* () {
     var selectedEngine = gEngineView.selectedEngine;
-    if (!selectedEngine)
-      return;
+    if (!selectedEngine) return;
 
-    var alias = { value: selectedEngine.alias };
-    var strings = document.getElementById("engineManagerBundle");
-    var title = strings.getString("editTitle");
-    var msg = strings.getFormattedString("editMsg", [selectedEngine.name]);
-
-    while (Services.prompt.prompt(window, title, msg, alias, null, {})) {
-      var bduplicate = false;
-      var eduplicate = false;
-      var dupName = "";
-
-      if (alias.value != "") {
-        // Check for duplicates in Places keywords.
-        bduplicate = !!(yield PlacesUtils.keywords.fetch(alias.value));
-
-        // Check for duplicates in changes we haven't committed yet
-        let engines = gEngineView._engineStore.engines;
-        for each (let engine in engines) {
-          if (engine.alias == alias.value &&
-              engine.name != selectedEngine.name) {
-            eduplicate = true;
-            dupName = engine.name;
-            break;
+    // returns either null or object:
+    //  string name
+    //  string alias
+    //  string qtext
+    //  url iconURI
+    function buildParams (engine) {
+      function url2text (ceng, eng, u) {
+        function getUF (name) {
+          let nn = "__new_"+name;
+          return (nn in u ? u[nn] : u[name]);
+        }
+        function getEF (name) {
+          return (name in ceng ? ceng[name] : eng[name]);
+        }
+        let normStr = function (s) { return s.replace(/\\/g, "\\\\").replace(/:/g, "\\:"); };
+        let tpl = getUF("template")||getEF("_searchForm");
+        let s = getUF("method")+" "+tpl+"\n"+(getEF("_queryCharset")||"UTF-8")+"\n";
+        let uparams = getUF("params");
+        if (uparams.length) {
+          s += "\n";
+          for (let p of uparams) {
+            s += p.name+"=";
+            if (p.value == "{searchTerms}") s += p.value; else s += normStr(p.value);
+            s += "\n";
           }
         }
+        return s;
       }
 
-      // Notify the user if they have chosen an existing engine/bookmark keyword
-      if (eduplicate || bduplicate) {
-        var dtitle = strings.getString("duplicateTitle");
-        var bmsg = strings.getString("duplicateBookmarkMsg");
-        var emsg = strings.getFormattedString("duplicateEngineMsg", [dupName]);
+      let res = {
+        iconURI: engine.iconURI,
+        name: engine.name,
+        alias: engine.alias,
+        engine: engine,
+      };
+      if (res.iconURI) res.iconURI = res.iconURI.spec;
 
-        Services.prompt.alert(window, dtitle, eduplicate ? emsg : bmsg);
-      } else {
-        gEngineView._engineStore.changeEngine(selectedEngine, "alias",
-                                              alias.value);
-        gEngineView.invalidate();
-        break;
+      let ceng = engine;
+      engine = engine.originalEngine.wrappedJSObject;
+
+      //if (engine._readOnly && !("_serializeToJSON" in engine)) {
+        // fallback to keyword editor
+      //  return null;
+      //} else {
+        res.qtext = null;
+        let url = engine._getURLOfType("text/html");
+        if (!url) return null;
+        res.qtext = url2text(ceng, engine, url);
+      //}
+
+      return res;
+    }
+
+    let params = buildParams(selectedEngine);
+    if (params) {
+      // use extended dialog
+      //params.engine = selectedEngine;
+      params.estore = gEngineView._engineStore;
+      openDialog("chrome://browser/content/search/engineInfoEdit.xul",
+                 "browser-search-info-editor", "chrome,dialog,modal,centerscreen,resizable",
+                 params);
+      if (params.accepted) {
+        let inv = false;
+        if (params.alias != selectedEngine.alias) {
+          inv = true;
+          gEngineView._engineStore.changeEngine(selectedEngine, "alias", params.alias);
+        }
+        if (params.name != selectedEngine.name) {
+          inv = true;
+          gEngineView._engineStore.changeEngine(selectedEngine, "name", params.name);
+          //selectedEngine.name = params.name;
+        }
+        if (params.url != selectedEngine._searchForm) selectedEngine._searchForm = params.url;
+        if (params.charset != selectedEngine._queryCharset) selectedEngine._queryCharset = params.charset;
+        if (params.iconURI && params.iconChanged) {
+          let newURI = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI;
+          selectedEngine.iconURI = newURI(params.iconURI, null, null);
+          selectedEngine.__icon_changed = true;
+          inv = true;
+        }
+        if (inv) gEngineView.invalidate();
+      }
+    } else {
+      // use old dialog, so user can edit at least something
+      var alias = { value: selectedEngine.alias };
+      var strings = document.getElementById("engineManagerBundle");
+      var title = strings.getString("editTitle");
+      var msg = strings.getFormattedString("editMsg", [selectedEngine.name]);
+      while (Services.prompt.prompt(window, title, msg, alias, null, {})) {
+        var bduplicate = false;
+        var eduplicate = false;
+        var dupName = "";
+        if (alias.value != "") {
+          try {
+            let bmserv = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].
+                         getService(Ci.nsINavBookmarksService);
+            if (bmserv.getURIForKeyword(alias.value)) bduplicate = true;
+          } catch(ex) {}
+          // Check for duplicates in changes we haven't committed yet
+          let engines = gEngineView._engineStore.engines;
+          for each (let engine in engines) {
+            if (engine.alias == alias.value && engine.name != selectedEngine.name) {
+              eduplicate = true;
+              dupName = engine.name;
+              break;
+            }
+          }
+        }
+        // Notify the user if they have chosen an existing engine/bookmark keyword
+        if (eduplicate || bduplicate) {
+          var dtitle = strings.getString("duplicateTitle");
+          var bmsg = strings.getString("duplicateBookmarkMsg");
+          var emsg = strings.getFormattedString("duplicateEngineMsg", [dupName]);
+          Services.prompt.alert(window, dtitle, eduplicate ? emsg : bmsg);
+        } else {
+          gEngineView._engineStore.changeEngine(selectedEngine, "alias", alias.value);
+          gEngineView.invalidate();
+          break;
+        }
       }
     }
   }),
@@ -176,7 +301,11 @@ var gEngineManagerDialog = {
 
     document.getElementById("cmd_editkeyword")
             .setAttribute("disabled", noSelection);
-  }
+  },
+
+  onDblClick: function () {
+    if (gEngineView.selectedIndex >= 0) gEngineManagerDialog.editKeyword();
+  },
 };
 
 function onDragEngineStart(event) {

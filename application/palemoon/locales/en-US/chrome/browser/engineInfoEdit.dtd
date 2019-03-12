@@ -1,0 +1,10 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+   Based on "Add to Search Bar" addon by Malte Kraus and Gavin Sharp -->
+
+<!ENTITY title             "Edit Search Engine Parameters">
+<!ENTITY name.label        "Name:">
+<!ENTITY name.accesskey    "N">
+<!ENTITY browse.label      "Browse…">
+<!ENTITY browse.accesskey  "B">

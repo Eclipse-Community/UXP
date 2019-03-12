@@ -36,6 +36,8 @@
   locale/browser/searchbar.dtd                                  (%chrome/browser/searchbar.dtd)
   locale/browser/engineManager.dtd                              (%chrome/browser/engineManager.dtd)
   locale/browser/engineManager.properties                       (%chrome/browser/engineManager.properties)
+    locale/browser/engineInfoEdit.dtd              (%chrome/browser/engineInfoEdit.dtd)
+    locale/browser/engineInfoEdit.properties       (%chrome/browser/engineInfoEdit.properties)
   locale/browser/setDesktopBackground.dtd                       (%chrome/browser/setDesktopBackground.dtd)
   locale/browser/shellservice.properties                        (%chrome/browser/shellservice.properties)
   locale/browser/statusbar/statusbar-overlay.dtd                (%chrome/browser/statusbar/statusbar-overlay.dtd)

@@ -75,6 +75,7 @@ const SEARCH_ENGINE_CHANGED      = "engine-changed";
 const SEARCH_ENGINE_LOADED       = "engine-loaded";
 const SEARCH_ENGINE_CURRENT      = "engine-current";
 const SEARCH_ENGINE_DEFAULT      = "engine-default";
+const SEARCH_ENGINE_RENAMED      = "engine-renamed";
 
 // The following constants are left undocumented in nsIBrowserSearchService.idl
 // For the moment, they are meant for testing/debugging purposes only.
@@ -4131,6 +4132,20 @@ SearchService.prototype = {
             this.batchTask.arm();
             // Invalidate the map used to parse URLs to search engines.
             this._parseSubmissionMap = null;
+            break;
+          case SEARCH_ENGINE_RENAMED:
+            if (aEngine && ("wrappedJSObject" in aEngine)) {
+              let wjo = aEngine.wrappedJSObject;
+              if (wjo && ("__old_name" in wjo)) {
+                delete this._engines[wjo.__old_name];
+                this._engines[wjo._name] = wjo;
+                delete wjo.__old_name;
+                this.batchTask.disarm();
+                this.batchTask.arm();
+                // Invalidate the map used to parse URLs to search engines.
+                this._parseSubmissionMap = null;
+              }
+            }
             break;
         }
         break;

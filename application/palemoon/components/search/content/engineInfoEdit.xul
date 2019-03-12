@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+   Based on "Add to Search Bar" addon by Malte Kraus and Gavin Sharp -->
+
+<?xml-stylesheet href="chrome://global/skin/"?>
+<?xml-stylesheet href="chrome://browser/skin/engineInfoEdit.css"?>
+
+<!DOCTYPE dialog [
+  <!ENTITY % engInfoEditDTD SYSTEM "chrome://browser/locale/engineInfoEdit.dtd">
+  <!ENTITY % bookmarkDTD SYSTEM "chrome://browser/locale/places/editBookmarkOverlay.dtd">
+  %engInfoEditDTD;
+  %bookmarkDTD;
+]>
+
+<dialog id="engineInfoEdit"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        buttons="accept,cancel"
+        ondialogaccept="return engEditInfoDlgAccept(event);"
+        onload="engEditInfoDlgInit();"
+        title="&title;"
+        persist="screenX screenY width height"
+        windowtype="Browser:SearchInfoEditor">
+ <script type="application/javascript" src="chrome://browser/content/search/engineInfoEdit.js"/>
+
+ <vbox flex="1">
+  <grid>
+    <columns>
+      <column flex="0"/>
+      <column flex="1"/>
+    </columns>
+
+    <rows id="rows">
+      <row id="name-row">
+        <label control="name" accesskey="&name.accesskey;">&name.label;</label>
+        <textbox value="" id="name" />
+      </row>
+
+      <row id="icon-row">
+        <label control="alias" id="alias-label" accesskey="&editBookmarkOverlay.keyword.accesskey;" value="&editBookmarkOverlay.keyword.label;" />
+        <hbox>
+          <textbox value="" id="alias" flex="1" />
+          <html:canvas id="icon" width="16" height="16" />
+          <button label="&browse.label;" oncommand="pickIcon(event);" id="icon-picker" accesskey="&browse.accesskey;" />
+        </hbox>
+      </row>
+    </rows>
+  </grid>
+  <textbox id="qtext" multiline="true" rows="8" flex="1" />
+ </vbox>
+
+</dialog>
