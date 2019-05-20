@@ -80,7 +80,7 @@
 <!ENTITY  rememberSearchForm.label       "Remember search and form history">
 <!ENTITY  rememberSearchForm.accesskey   "f">
 
-<!ENTITY  clearOnClose.label             "Clear history when &brandShortName; closes">
+<!ENTITY  clearOnClose.label             "Clear history, cookies and other data when &brandShortName; closes">
 <!ENTITY  clearOnClose.accesskey         "r">
 
 <!ENTITY  clearOnCloseSettings.label     "Settings…">
