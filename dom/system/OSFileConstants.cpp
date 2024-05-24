@@ -302,14 +302,14 @@ nsresult InitOSFileConstants()
   // some platforms or in non-Firefox embeddings of Gecko).
 
   GetPathToSpecialDir(NS_OS_TEMP_DIR, paths->tmpDir);
-  GetPathToSpecialDir(NS_OS_HOME_DIR, paths->homeDir);
+/*  GetPathToSpecialDir(NS_OS_HOME_DIR, paths->homeDir);
   GetPathToSpecialDir(NS_OS_DESKTOP_DIR, paths->desktopDir);
   GetPathToSpecialDir(XRE_USER_APP_DATA_DIR, paths->userApplicationDataDir);
 
 #if defined(XP_WIN)
   GetPathToSpecialDir(NS_WIN_APPDATA_DIR, paths->winAppDataDir);
   GetPathToSpecialDir(NS_WIN_PROGRAMS_DIR, paths->winStartMenuProgsDir);
-#endif // defined(XP_WIN)
+#endif // defined(XP_WIN)*/
 
 #if defined(XP_MACOSX)
   GetPathToSpecialDir(NS_MAC_USER_LIB_DIR, paths->macUserLibDir);

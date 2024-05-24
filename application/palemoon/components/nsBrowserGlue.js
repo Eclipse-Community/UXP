@@ -17,6 +17,9 @@ Cu.import("resource://gre/modules/Services.jsm");
 XPCOMUtils.defineLazyServiceGetter(this, "AlertsService",
                                    "@mozilla.org/alerts-service;1", "nsIAlertsService");
 
+XPCOMUtils.defineLazyServiceGetter(this, "winShellService",
+                                   "@mozilla.org/browser/shell-service;1","nsIWindowsShellService");
+
 // Define Lazy Module Getters
 [
   ["AddonManager", "resource://gre/modules/AddonManager.jsm"],
@@ -702,6 +705,9 @@ BrowserGlue.prototype = {
         isDefaultError = true;
       }
 
+      //MYPAL PORTABLE CODE
+      let isPortable= winShellService.isPortableMode();
+      if (!isPortable) {
       if (isDefault) {
         let now = (Math.floor(Date.now() / 1000)).toString();
         Services.prefs.setCharPref("browser.shell.mostRecentDateSetAsDefault", now);
@@ -745,7 +751,7 @@ BrowserGlue.prototype = {
           ShellService.shouldCheckDefaultBrowser = checkEveryTime.value;
         }.bind(this), Ci.nsIThread.DISPATCH_NORMAL);
       }
-    }
+    }}
   },
 
   _onQuitRequest: function(aCancelQuit, aQuitType) {
