@@ -65,19 +65,6 @@ ifdef MOZ_PACKAGE_JSSHELL
 	$(RM) $(PKG_JSSHELL)
 	$(MAKE_JSSHELL)
 endif # MOZ_PACKAGE_JSSHELL
-ifdef MOZ_ARTIFACT_BUILD_SYMBOLS
-	@echo 'Packaging existing crashreporter symbols from artifact build...'
-	$(NSINSTALL) -D $(DIST)/$(PKG_PATH)
-	cd $(DIST)/crashreporter-symbols && \
-          zip -r5D '../$(PKG_PATH)$(SYMBOL_ARCHIVE_BASENAME).zip' . -i '*.sym' -i '*.txt'
-endif # MOZ_ARTIFACT_BUILD_SYMBOLS
-ifdef MOZ_CODE_COVERAGE
-	# Package code coverage gcno tree
-	@echo 'Packaging code coverage data...'
-	$(RM) $(CODE_COVERAGE_ARCHIVE_BASENAME).zip
-	$(PYTHON) -mmozbuild.codecoverage.packager \
-		--output-file='$(DIST)/$(PKG_PATH)$(CODE_COVERAGE_ARCHIVE_BASENAME).zip'
-endif
 ifeq (Darwin, $(OS_ARCH))
 ifdef MOZ_ASAN
 	@echo "Rewriting ASan runtime dylib paths for all binaries in $(DIST)/$(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH) ..."
