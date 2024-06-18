@@ -46,6 +46,9 @@ MOZ_PHOENIX=1
 # Lightweight Themes
 MOZ_PERSONAS=1
 
+# Enable SQL storage format for certs and passwords in NSS
+MOZ_SECURITY_SQLSTORE=1
+
 # Browser Feature: Profile Migration Component
 MOZ_PROFILE_MIGRATOR=
 
