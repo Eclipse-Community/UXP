@@ -2027,39 +2027,6 @@ SelectProfile(nsIProfileLock* *aResult, nsIToolkitProfileService* aProfileSvc, n
     return ProfileLockedDialog(lf, lf, unlocker, aNative, aResult);
   }
 
-  //MYPAL PORTABLE CODE START
-  if (prt>0) {
-  //lstrcmpW(L"Teest",L"Teest");
-
-  nsCOMPtr<nsIFile> exeFile;
-  rv = XRE_GetBinaryPath(gArgv[0], getter_AddRefs(exeFile));
-  rv = exeFile->GetParent(getter_AddRefs(lf));
-  lf->AppendNative(*aProfileName);
-
-//  nsAutoString path1;
-//  rv = lf->GetPath(path1);
-//  ::MessageBoxW(NULL,path1.get(),L"Teest",MB_OKCANCEL);
-
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIProfileUnlocker> unlocker;
-
-  bool exists;
-   lf->Exists(&exists);
-   if (!exists) {
-       rv = lf->Create(nsIFile::DIRECTORY_TYPE, 0700);
-       NS_ENSURE_SUCCESS(rv, rv);
-   }
-
-    // If a profile path is specified directory on the command line, then
-    // assume that the temp directory is the same as the given directory.
-  rv = NS_LockProfilePath(lf, lf, getter_AddRefs(unlocker), aResult);
-  if (NS_SUCCEEDED(rv))
-    return rv;
-    return ProfileLockedDialog(lf, lf, unlocker, aNative, aResult);
-  }
-  //MYPAL PORTABLE CODE END
-
   ar = CheckArg("createprofile", true, &arg);
   if (ar == ARG_BAD) {
     PR_fprintf(PR_STDERR, "Error: argument --createprofile requires a profile name\n");
