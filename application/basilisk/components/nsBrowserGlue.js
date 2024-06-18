@@ -998,9 +998,8 @@ BrowserGlue.prototype = {
         isDefaultError = true;
       }
 
-      //CENTAURY PORTABLE CODE
-      let isPortable= winShellService.isPortableMode();
-      if (!isPortable) {
+      var profService = Cc["@mozilla.org/toolkit/profile-service;1"].getService(Ci.nsIToolkitProfileService);
+      if (profService.portable()!=1) {
       if (isDefault) {
         let now = (Math.floor(Date.now() / 1000)).toString();
         Services.prefs.setCharPref("browser.shell.mostRecentDateSetAsDefault", now);

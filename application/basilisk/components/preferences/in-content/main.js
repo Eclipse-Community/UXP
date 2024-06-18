@@ -550,7 +550,8 @@ var gMainPane = {
         defaultBrowserBox.hidden = true;
         return;
       }
-      if (shellSvc.isPortableMode()) return;
+      var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+      if (profService.portable()==1) return;
       let setDefaultPane = document.getElementById("setDefaultPane");
       let isDefault = shellSvc.isDefaultBrowser(false, true);
       setDefaultPane.selectedIndex = isDefault ? 1 : 0;
@@ -569,13 +570,15 @@ var gMainPane = {
       let alwaysCheckPref = document.getElementById("browser.shell.checkDefaultBrowser");
       alwaysCheckPref.value = true;
 
+
       let shellSvc = getShellService();
-      let sPortable;
+      var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+      let isPortable;
       if (!shellSvc)
         return;
       try {
-    isPortable = shellSvc.isPortableMode();
-    if (isPortable) {
+    isPortable = profService.portable();
+    if (isPortable==1) {
           Components.utils.import("resource:///modules/RecentWindow.jsm");
           var win = RecentWindow.getMostRecentBrowserWindow();
           var brandBundle = win.document.getElementById("bundle_brand");

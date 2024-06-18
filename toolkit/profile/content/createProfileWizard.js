@@ -24,9 +24,14 @@ function initWizard()
   try {
     gProfileService = C[ToolkitProfileService].getService(I.nsIToolkitProfileService);
     gProfileManagerBundle = document.getElementById("bundle_profileManager");
-
+    var pathProp="DefProfRt"
     var dirService = C["@mozilla.org/file/directory_service;1"].getService(I.nsIProperties);
-    gDefaultProfileParent = dirService.get("DefProfRt", I.nsIFile);
+    var profService = C["@mozilla.org/toolkit/profile-service;1"].getService(I.nsIToolkitProfileService);
+    if (profService.portable()>0){
+      pathProp="CurProcD";
+      gDefaultProfileParent = dirService.get(pathProp, I.nsIFile).parent;
+      }
+      else gDefaultProfileParent = dirService.get(pathProp, I.nsIFile);
 
     // Initialize the profile location display.
     gProfileDisplay = document.getElementById("profileDisplay").firstChild;

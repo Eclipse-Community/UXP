@@ -394,35 +394,6 @@ nsWindowsShellService::CancelPortableMode()
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsWindowsShellService::IsPortableMode(bool* aIsPortable)
-{
-  nsresult rv;
-  *aIsPortable=false;
-
-  nsCOMPtr<nsIFile> portmodemark;
-
-  rv = NS_GetSpecialDirectory(NS_OS_CURRENT_PROCESS_DIR,
-                              getter_AddRefs(portmodemark));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = portmodemark->AppendNative(NS_LITERAL_CSTRING("pmprt.mod"));
-
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  bool fileExists;
-  rv = portmodemark->Exists(&fileExists);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-//  nsAutoString path1;
-//  rv = portmodemark->GetPath(path1);
-//  ::MessageBoxW(NULL,path1.get(),L"Teest",MB_OKCANCEL);
-
-  if (fileExists){
-  *aIsPortable=true;
-  }
-  return NS_OK;
-}
 /*
  * Query's the AAR for the default status.
  * This only checks for BasiliskURL and if aCheckAllTypes is set, then

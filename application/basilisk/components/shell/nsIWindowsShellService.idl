@@ -8,6 +8,7 @@
 [scriptable, uuid(f8a26b94-49e5-4441-8fbc-315e0b4f22ef)]
 interface nsIWindowsShellService : nsIShellService
 {
+    void cancelPortableMode();
     /**
      * Provides the shell service an opportunity to do some Win7+ shortcut
      * maintenance needed on initial startup of the browser.

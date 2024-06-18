@@ -748,7 +748,8 @@ var gAdvancedPane = {
       document.getElementById("alwaysCheckDefault").disabled = true;
       return;
     }
-    if (winShellSvc.isPortableMode()) return;
+    var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+    if (profService.portable()==1) return;
     let selectedIndex =
       shellSvc.isDefaultBrowser(false, true) ? 1 : 0;
     setDefaultPane.selectedIndex = selectedIndex;
@@ -759,14 +760,14 @@ var gAdvancedPane = {
    */
   setDefaultBrowser: function()
   {
-    //MYPAL PORTABLE CODE
     let shellSvc = getShellService();
-    let sPortable;
+    var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+    let isPortable;
     if (!shellSvc)
       return;
     try {
-    isPortable = winShellSvc.isPortableMode();
-    if (isPortable) {
+    isPortable = profService.portable();
+    if (isPortable==1) {
           Components.utils.import("resource:///modules/RecentWindow.jsm");
           var win = RecentWindow.getMostRecentBrowserWindow();
           var brandBundle = win.document.getElementById("bundle_brand");
