@@ -112,7 +112,7 @@ public:
 private:
     friend class nsToolkitProfile;
     friend class nsToolkitProfileFactory;
-    friend nsresult NS_NewToolkitProfileService(nsIToolkitProfileService**,int);
+    friend nsresult NS_NewToolkitProfileService(nsIToolkitProfileService**,uint32_t);
 
     nsToolkitProfileService() :
         mDirty(false),
@@ -126,7 +126,7 @@ private:
         gService = nullptr;
     }
 
-    nsresult Init(int portable);
+    nsresult Init(uint32_t portable);
 
     nsresult CreateTimesInternal(nsIFile *profileDir);
 
@@ -382,19 +382,30 @@ NS_IMPL_ISUPPORTS(nsToolkitProfileService,
                   nsIToolkitProfileService)
 
 nsresult
-nsToolkitProfileService::Init(int portable)
+nsToolkitProfileService::Init(uint32_t portable)
 {
-    //MYPAL CODE
-    if(portable>0) return NS_OK;
 
     NS_ASSERTION(gDirServiceProvider, "No dirserviceprovider!");
     nsresult rv;
 
-    rv = gDirServiceProvider->GetUserAppDataDirectory(getter_AddRefs(mAppData));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if(portable>0){
+      nsCOMPtr<nsIFile> appFile;
+      bool per = false;
+      rv = gDirServiceProvider->GetFile(XRE_EXECUTABLE_FILE, &per, getter_AddRefs(appFile));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = appFile->GetParent(getter_AddRefs(mAppData));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = appFile->GetParent(getter_AddRefs(mTempData));
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = gDirServiceProvider->GetUserLocalDataDirectory(getter_AddRefs(mTempData));
-    NS_ENSURE_SUCCESS(rv, rv);
+    }
+    else{
+      rv = gDirServiceProvider->GetUserAppDataDirectory(getter_AddRefs(mAppData));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = gDirServiceProvider->GetUserLocalDataDirectory(getter_AddRefs(mTempData));
+      NS_ENSURE_SUCCESS(rv, rv);
+      }
 
     rv = mAppData->Clone(getter_AddRefs(mListFile));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -972,6 +983,13 @@ nsToolkitProfileService::Flush()
     return NS_OK;
 }
 
+
+NS_IMETHODIMP
+nsToolkitProfileService::Portable(uint32_t *aResult)
+{
+    return gDirServiceProvider->Portable(aResult);
+}
+
 NS_IMPL_ISUPPORTS(nsToolkitProfileFactory, nsIFactory)
 
 NS_IMETHODIMP
@@ -1009,7 +1027,7 @@ NS_NewToolkitProfileFactory(nsIFactory* *aResult)
 }
 
 nsresult
-NS_NewToolkitProfileService(nsIToolkitProfileService* *aResult,int portable)
+NS_NewToolkitProfileService(nsIToolkitProfileService* *aResult,uint32_t portable)
 {
     nsToolkitProfileService* profileService = new nsToolkitProfileService();
     if (!profileService)
