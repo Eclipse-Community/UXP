@@ -1,0 +1,68 @@
+#aboutPMDialogContainer {
+  position: relative;
+  background-image: url("chrome://branding/content/about-background.jpg");
+  background-repeat: no-repeat;
+  background-color: #9ABCD5;
+  color: #101020; 
+}
+
+#aboutHeaderBox {
+  position: relative;
+  background-image: url("chrome://branding/content/about-wordmark.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 44px;
+}
+
+#aboutVersionBox {
+  position: relative;
+  text-shadow: 1px 1px 0px #9ABCD5;
+}
+
+#aboutTextBox {
+  position: relative;
+  animation: 3s fadeIn;
+  animation-fill-mode: forwards;
+  text-shadow: 1px 1px 0px #9ABCD5;
+  color: #101020; 
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#aboutLinkBox {
+  position: relative;
+  padding: 15px 10px 0;
+}
+
+#aboutPMtrademark {
+  position: relative;
+  font-size: 10px;
+  text-align: center;
+  color: #C0C0C0;
+  text-shadow: 1px 1px 0px #000000;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#aboutPMDialogContainer::before {
+  opacity: 0;
+  animation-fill-mode: forwards;
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url("chrome://branding/content/PM-halloween23.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
