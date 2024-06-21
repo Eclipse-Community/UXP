@@ -114,7 +114,7 @@ INSTALL_SDK = 1
 endif
 
 include $(topsrcdir)/toolkit/mozapps/installer/signing.mk
-include $(topsrcdir)/toolkit/mozapps/installer/packager-uxp.mk
+include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 
 ifeq (bundle, $(MOZ_FS_LAYOUT))
 BINPATH = $(_BINPATH)
