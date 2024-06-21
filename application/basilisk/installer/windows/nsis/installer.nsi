@@ -40,7 +40,6 @@ Var AddDesktopSC
 Var InstallMaintenanceService
 Var PageName
 Var PreventRebootRequired
-Var PrtChkb
 
 ; By defining NO_STARTMENU_DIR an installer that doesn't provide an option for
 ; an application's Start Menu PROGRAMS directory and doesn't define the
@@ -290,15 +289,6 @@ Section "-Application" APP_IDX
                       "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
                       "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
 
-  ${If} $InstallType == ${INSTALLTYPE_PORTABLE}
-  ${If} $PrtChkb == 1
-    FileOpen $0 "$INSTDIR\browser\pmprt.mod" w
-    FileClose $0
-  ${Else}
-    FileOpen $0 "$INSTDIR\browser\pmundprt.mod" w
-    FileClose $0
-  ${EndIf}
-  ${Else}
   ; Register DLLs
   ; XXXrstrong - AccessibleMarshal.dll can be used by multiple applications but
   ; is only registered for the last application installed. When the last
@@ -547,7 +537,6 @@ Section "-Application" APP_IDX
         UAC::ExecCodeSegment $0
       ${EndIf}
     ${EndUnless}
-  ${EndIf}
   ${EndIf}
 SectionEnd
 
@@ -867,12 +856,6 @@ Function leaveOptions
   ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 3" "State"
   StrCmp $R0 "1" +1 +2
   StrCpy $InstallType ${INSTALLTYPE_CUSTOM}
-  ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 6" "State"
-  StrCmp $R0 "1" +1 +2
-  StrCpy $InstallType ${INSTALLTYPE_PORTABLE}
-  ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 7" "State"
-  StrCmp $R0 "1" +1 +2
-  StrCpy $PrtChkb 1
 
   ${LeaveOptionsCommon}
 
@@ -962,7 +945,6 @@ Function preSummary
   DeleteINISec "$PLUGINSDIR\summary.ini" "Field 4"
 
   ; Check if it is possible to write to HKLM
-  ${If} $InstallType != ${INSTALLTYPE_PORTABLE}
   ClearErrors
   WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
   ${Unless} ${Errors}
@@ -1008,7 +990,6 @@ Function preSummary
     WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Text   "$(SUMMARY_REBOOT_REQUIRED_INSTALL)"
     WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Left   "0"
     WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Right  "-1"
-  ${EndIf}
   ${EndIf}
 
   !insertmacro MUI_HEADER_TEXT "$(SUMMARY_PAGE_TITLE)" "$(SUMMARY_PAGE_SUBTITLE)"
@@ -1108,7 +1089,7 @@ Function .onInit
   !insertmacro InitInstallOptionsFile "shortcuts.ini"
   !insertmacro InitInstallOptionsFile "summary.ini"
 
-  WriteINIStr "$PLUGINSDIR\options.ini" "Settings" NumFields "7"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Settings" NumFields "5"
 
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Type   "label"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Text   "$(OPTIONS_SUMMARY)"
@@ -1134,14 +1115,6 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Bottom "65"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" State  "0"
 
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Type   "RadioButton"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Text   "$(OPTION_PORTABLE_RADIO)"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Left   "0"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Top    "85"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Bottom "95"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" State  "0"
-
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Type   "label"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Text   "$(OPTION_STANDARD_DESC)"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Left   "15"
@@ -1155,14 +1128,6 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Right  "-1"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "67"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "87"
-
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Type   "checkbox"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Text   "$(OPTION_PORTABLE_DESC)"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Left   "15"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Top    "97"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Bottom "117"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" State  "1"
 
   ; Setup the shortcuts.ini file for the Custom Shortcuts Page
   ; Don't offer to install the quick launch shortcut on Windows 7
