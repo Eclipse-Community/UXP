@@ -14,7 +14,7 @@ ac_add_options --disable-updater
 ac_add_options --disable-tests
 #ac_add_options --disable-mochitests
 ac_add_options --disable-accessibility
-ac_add_options --enable-eme=adobe,widevine
+#ac_add_options --enable-eme=adobe,widevine
 ac_add_options --enable-av1
 ac_add_options --enable-phoenix-extensions
 ac_add_options --disable-js-lto
