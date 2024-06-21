@@ -1,0 +1,9 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+
+DIRS += ['content', 'locales']
+
+DIST_SUBDIR = 'browser'
+export('DIST_SUBDIR')
+
+include('../shared/branding.mozbuild')
+ApplicationBranding()

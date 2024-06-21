@@ -1,0 +1,9 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!ENTITY  brandShortName        "Eclipse Lun3r">
+<!ENTITY  brandShorterName      "Lun3r">
+<!ENTITY  brandFullName         "Eclipse Lun3r">
+<!ENTITY  vendorShortName       "Eclipse Community">
+<!ENTITY  trademarkInfo.part1   "Eclipse Lun3r logos are copyrights of Eclipse Community.">

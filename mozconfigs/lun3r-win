@@ -1,0 +1,35 @@
+mk_add_options MOZ_MAKE_FLAGS="-j16"
+
+ac_add_options --enable-release
+ac_add_options --enable-application=palemoon
+ac_add_options --enable-optimize="-arch:IA32 -O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp"
+#ac_add_options --enable-optimize="-O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp"
+ac_add_options --enable-jemalloc
+ac_add_options --enable-official-branding
+ac_add_options  --disable-debug
+ac_add_options  --enable-strip
+ac_add_options --disable-maintenance-service
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-tests
+#ac_add_options --disable-mochitests
+ac_add_options --disable-accessibility
+ac_add_options --enable-eme=adobe,widevine
+ac_add_options --enable-av1
+ac_add_options --enable-phoenix-extensions
+ac_add_options --disable-js-lto
+#ac_add_options --enable-jxl
+export MOZ_SOURCE_CHANGESET=iloveneedingtobodgechangesetfornoreason
+export MOZ_OFFICIAL_BRANDING=1
+
+# Branding
+ac_add_options --with-app-name=Lun3r
+ac_add_options --with-app-basename=Lun3r
+ac_add_options --with-distribution-id=com.eclipse.lun3r
+
+ac_add_options --target=i686-pc-mingw32
+WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.13.26020/x86
+
+#ac_add_options --target=x86_64-pc-mingw32
+#ac_add_options --host=x86_64-pc-mingw32
+#WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.13.26020/x64
