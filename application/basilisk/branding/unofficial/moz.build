@@ -10,3 +10,7 @@ export('DIST_SUBDIR')
 
 include('../shared/branding.mozbuild')
 ApplicationBranding()
+
+FINAL_TARGET_FILES['..'] += [
+    'basilisk.VisualElementsManifest.xml',
+]

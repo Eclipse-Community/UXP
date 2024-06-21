@@ -7,3 +7,7 @@ export('DIST_SUBDIR')
 
 include('../shared/branding.mozbuild')
 ApplicationBranding()
+
+FINAL_TARGET_FILES['..'] += [
+    'Lun3r.VisualElementsManifest.xml',
+]

@@ -11,8 +11,8 @@
 
 !define FileMainEXE           "@MOZ_APP_NAME@.exe"
 !define WindowClass           "Pale MoonMessageWindow"
-!define DDEApplication        "@MOZ_APP_BASENAME@""
-!define AppRegName            "@MOZ_APP_FULLNAME@""
+!define DDEApplication        "@MOZ_APP_BASENAME@"
+!define AppRegName            "@MOZ_APP_FULLNAME@"
 
 !ifndef DEV_EDITION
 !define BrandShortName        "@MOZ_APP_DISPLAYNAME@"
