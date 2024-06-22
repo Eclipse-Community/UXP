@@ -1,35 +1,104 @@
+## UXP mozconfig thing based off roytam1's config and r3dfox config
+
+##Uncomment PGO for release build
+
+# Please do not redistribute this build with official branding if you are not part of Eclipse Community.
+ac_add_options --enable-official-branding
+ac_add_options --with-app-name=Lun3r
+ac_add_options --with-app-basename=Lun3r
+ac_add_options --with-distribution-id=com.eclipse
+export MOZ_OFFICIAL_BRANDING=1
+export MC_PALEMOON=1
+
+# 16 jobs for 16 cores
 mk_add_options MOZ_MAKE_FLAGS="-j16"
 
-ac_add_options --enable-release
+# x86 build
+ac_add_options --target=i686-pc-mingw32
+WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.16.27012/x86
+
+# x64 build
+#ac_add_options --target=x86_64-pc-mingw32
+#WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.16.27012/x64
+
+# Build only Lun3r
 ac_add_options --enable-application=palemoon
-ac_add_options --enable-optimize="-arch:IA32 -O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp"
-#ac_add_options --enable-optimize="-O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp"
+ac_add_options --disable-artifact-builds
+
+# Optimization settings
+ac_add_options --enable-release
 ac_add_options --enable-jemalloc
-ac_add_options --enable-official-branding
-ac_add_options  --disable-debug
-ac_add_options  --enable-strip
-ac_add_options --disable-maintenance-service
-ac_add_options --disable-crashreporter
-ac_add_options --disable-updater
+ac_add_options --disable-debug
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-debug-js-modules
 ac_add_options --disable-tests
 #ac_add_options --disable-mochitests
 ac_add_options --disable-accessibility
-#ac_add_options --enable-eme=adobe,widevine
-ac_add_options --enable-av1
+ac_add_options --enable-devtools
 ac_add_options --enable-phoenix-extensions
-ac_add_options --disable-js-lto
-#ac_add_options --enable-jxl
+ac_add_options --enable-shared-js
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+#ac_add_options --enable-clang-plugin
+ac_add_options --enable-js-lto
+ac_add_options --enable-optimize="-arch:IA32 -O2 -Ob2it -Oy- -GS- -GFAT -Qpar -Qfast_transcendentals -openmp"
+#ac_add_options --enable-hardening
+export CROSS_COMPILE=0
+export MOZ_INCLUDE_SOURCE_INFO=1
+export MOZILLA_OFFICIAL=1
+export MOZ_OPTIMIZE=1
+export STRIP_FLAGS="--strip-debug --strip-unneeded"
+
+# Media settings
+ac_add_options --enable-raw
+ac_add_options --enable-webrtc
+ac_add_options --enable-jxl
+ac_add_options --enable-av1
+
+# Enable if update server and signatures are figured out
+#ac_add_options --enable-nss-mar
+
+# Client settings
+#ac_add_options --disable-backgroundtasks
+#ac_add_options --disable-bits-download
+ac_add_options --disable-crashreporter
+#ac_add_options --disable-default-browser-agent
+ac_add_options --disable-eme
+ac_add_options --disable-maintenance-service
+#ac_add_options --disable-notification-server
+ac_add_options --disable-parental-controls
+#ac_add_options --disable-update-agent
+ac_add_options --disable-updater
+#ac_add_options --without-wasm-sandboxed-libraries
 export MOZ_SOURCE_CHANGESET=iloveneedingtobodgechangesetfornoreason
-export MOZ_OFFICIAL_BRANDING=1
+mk_add_options MOZ_CRASHREPORTER=0
+mk_add_options MOZ_DATA_REPORTING=0
+mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_TELEMETRY_REPORTING=
+export MOZ_CRASHREPORTER=0
+export MOZ_DATA_REPORTING=0
+export MOZ_REQUIRE_SIGNING=
+export MOZ_TELEMETRY_REPORTING=
 
-# Branding
-ac_add_options --with-app-name=Lun3r
-ac_add_options --with-app-basename=Lun3r
-ac_add_options --with-distribution-id=com.eclipse.lun3r
+# Set -Copt-level=3
+export OPT_LEVEL="3"
+ac_add_options OPT_LEVEL="3"
 
-ac_add_options --target=i686-pc-mingw32
-WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.13.26020/x86
+# Enable LTO
+export MOZ_LTO=1
+ac_add_options MOZ_LTO=1
+#export MOZ_PGO=1
+#ac_add_options MOZ_PGO=1
 
-#ac_add_options --target=x86_64-pc-mingw32
-#ac_add_options --host=x86_64-pc-mingw32
-#WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.13.26020/x64
+if test "$GEN_PGO"; then
+    ac_add_options --enable-profile-generate
+elif test "$USE_PGO"; then
+    ac_add_options --enable-profile-use=cross
+fi
+
+# Compiler, Linker, and Rust flags
+export CFLAGS="-O2"
+export CPPFLAGS="-O2"
+export CXXFLAGS="-O2"
+POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
+export VERBOSE=1
