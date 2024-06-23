@@ -61,6 +61,10 @@ AboutRedirector.prototype = {
       url: "chrome://global/content/aboutRights.xhtml",
       flags: (URI_SAFE_FOR_UNTRUSTED_CONTENT | MAKE_LINKABLE | ALLOW_SCRIPT)
     },
+    "robots": {
+      url: "chrome://browser/content/aboutRobots.xhtml",
+      flags: (URI_SAFE_FOR_UNTRUSTED_CONTENT | ALLOW_SCRIPT | HIDE_FROM_ABOUTABOUT)
+    },
     "sessionrestore": {
       url: "chrome://browser/content/aboutSessionRestore.xhtml",
       flags: ALLOW_SCRIPT

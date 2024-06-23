@@ -18,6 +18,7 @@ browser.jar:
 *       content/browser/aboutDialog.xul               (content/aboutDialog.xul)
 *       content/browser/aboutDialog.js                (content/aboutDialog.js)
         content/browser/aboutDialog.css               (content/aboutDialog.css)
+        content/browser/aboutRobots.xhtml             (content/aboutRobots.xhtml)
 *       content/browser/abouthome/aboutHome.xhtml     (content/abouthome/aboutHome.xhtml)
         content/browser/abouthome/aboutHome.js        (content/abouthome/aboutHome.js)
 *       content/browser/abouthome/aboutHome.css       (content/abouthome/aboutHome.css)
@@ -55,6 +56,9 @@ browser.jar:
         content/browser/abouthealthreport/abouthealth.js      (content/abouthealthreport/abouthealth.js)
         content/browser/abouthealthreport/abouthealth.css     (content/abouthealthreport/abouthealth.css)
 #endif
+
+        content/browser/aboutRobots-icon.png          (content/aboutRobots-icon.png)
+        content/browser/aboutRobots-widget-left.png   (content/aboutRobots-widget-left.png)
         content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
         content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
         content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
