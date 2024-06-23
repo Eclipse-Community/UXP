@@ -1359,8 +1359,8 @@ nsXREDirProvider::GetSysUserExtensionsDirectory(nsIFile** aFile)
   nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = AppendSysUserExtensionPath(localDir);
-  NS_ENSURE_SUCCESS(rv, rv);
+  //rv = AppendSysUserExtensionPath(localDir);
+  //NS_ENSURE_SUCCESS(rv, rv);
 
   rv = EnsureDirectoryExists(localDir);
   NS_ENSURE_SUCCESS(rv, rv);

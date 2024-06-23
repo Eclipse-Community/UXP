@@ -1894,7 +1894,7 @@ static nsAutoCString gResetOldProfileName;
 // 6) display the profile-manager UI
 static nsresult
 SelectProfile(nsIProfileLock* *aResult, nsIToolkitProfileService* aProfileSvc, nsINativeAppSupport* aNative,
-              bool* aStartOffline, nsACString* aProfileName)
+              bool* aStartOffline, nsACString* aProfileName,int prt)
 {
   StartupTimeline::Record(StartupTimeline::SELECT_PROFILE);
 
@@ -2017,6 +2017,39 @@ SelectProfile(nsIProfileLock* *aResult, nsIToolkitProfileService* aProfileSvc, n
 
     return ProfileLockedDialog(lf, lf, unlocker, aNative, aResult);
   }
+
+  //MYPAL PORTABLE CODE START
+  if (prt>0) {
+  //lstrcmpW(L"Teest",L"Teest");
+
+  nsCOMPtr<nsIFile> exeFile;
+  rv = XRE_GetBinaryPath(gArgv[0], getter_AddRefs(exeFile));
+  rv = exeFile->GetParent(getter_AddRefs(lf));
+  lf->AppendNative(*aProfileName);
+
+//  nsAutoString path1;
+//  rv = lf->GetPath(path1);
+//  ::MessageBoxW(NULL,path1.get(),L"Teest",MB_OKCANCEL);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIProfileUnlocker> unlocker;
+
+  bool exists;
+   lf->Exists(&exists);
+   if (!exists) {
+       rv = lf->Create(nsIFile::DIRECTORY_TYPE, 0700);
+       NS_ENSURE_SUCCESS(rv, rv);
+   }
+
+    // If a profile path is specified directory on the command line, then
+    // assume that the temp directory is the same as the given directory.
+  rv = NS_LockProfilePath(lf, lf, getter_AddRefs(unlocker), aResult);
+  if (NS_SUCCEEDED(rv))
+    return rv;
+    return ProfileLockedDialog(lf, lf, unlocker, aNative, aResult);
+  }
+  //MYPAL PORTABLE CODE END
 
   ar = CheckArg("createprofile", true, &arg);
   if (ar == ARG_BAD) {
@@ -2692,6 +2725,7 @@ public:
   int XRE_main(int argc, char* argv[], const nsXREAppData* aAppData);
   int XRE_mainInit(bool* aExitFlag);
   int XRE_mainStartup(bool* aExitFlag);
+  int portable();
   nsresult XRE_mainRun();
 
   nsCOMPtr<nsINativeAppSupport> mNativeApp;
@@ -2722,6 +2756,21 @@ public:
   GdkDisplay* mGdkDisplay;
 #endif
 };
+
+//MYPAL CODE
+int XREMain::portable(){
+  bool portable;
+  nsCOMPtr<nsIFile> portmodemark;
+  mDirProvider.GetAppDir()->Clone(getter_AddRefs(portmodemark));
+  portmodemark->AppendNative(NS_LITERAL_CSTRING("pmprt.mod"));
+  portmodemark->Exists(&portable);
+  if (portable) return 1;
+  mDirProvider.GetAppDir()->Clone(getter_AddRefs(portmodemark));
+  portmodemark->AppendNative(NS_LITERAL_CSTRING("pmundprt.mod"));
+  portmodemark->Exists(&portable);
+  if (portable) return 2;
+  else return 0; 
+}
 
 /*
  * XRE_mainInit - Initial setup and command line parameter processing.
@@ -3061,6 +3110,9 @@ XREMain::XRE_mainInit(bool* aExitFlag)
   } else if (ar == ARG_FOUND) {
     SaveToEnv("MOZ_NO_REMOTE=1");
   }
+  //MYPAL CODE
+  //lstrcmpW(L"Teest",L"Teest");
+  if (portable()==1) SaveToEnv("MOZ_NO_REMOTE=1");
 
   ar = CheckArg("new-instance", true);
   if (ar == ARG_BAD) {
@@ -3431,8 +3483,11 @@ XREMain::XRE_mainStartup(bool* aExitFlag)
     return 0;
   }
 #endif
+  //MYPAL CODE
+  int prt=portable();   
+  if (prt>0) mProfileName.Assign("\Profile");
 
-  rv = NS_NewToolkitProfileService(getter_AddRefs(mProfileSvc));
+  rv = NS_NewToolkitProfileService(getter_AddRefs(mProfileSvc),prt);
   if (rv == NS_ERROR_FILE_ACCESS_DENIED) {
     PR_fprintf(PR_STDERR, "Error: Access was denied while trying to open files in " \
                 "your profile directory.\n");
@@ -3444,7 +3499,7 @@ XREMain::XRE_mainStartup(bool* aExitFlag)
   }
 
   rv = SelectProfile(getter_AddRefs(mProfileLock), mProfileSvc, mNativeApp, &mStartOffline,
-                      &mProfileName);
+                      &mProfileName,prt);
   if (rv == NS_ERROR_LAUNCHED_CHILD_PROCESS ||
       rv == NS_ERROR_ABORT) {
     *aExitFlag = true;

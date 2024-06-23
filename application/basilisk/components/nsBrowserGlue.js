@@ -16,7 +16,8 @@ Cu.import("resource://gre/modules/AsyncPrefs.jsm");
 
 XPCOMUtils.defineLazyServiceGetter(this, "WindowsUIUtils", "@mozilla.org/windows-ui-utils;1", "nsIWindowsUIUtils");
 XPCOMUtils.defineLazyServiceGetter(this, "AlertsService", "@mozilla.org/alerts-service;1", "nsIAlertsService");
-
+XPCOMUtils.defineLazyServiceGetter(this, "winShellService",
+                                   "@mozilla.org/browser/shell-service;1","nsIWindowsShellService");
 // lazy module getters
 [
   ["AboutHome", "resource:///modules/AboutHome.jsm"],
@@ -997,6 +998,9 @@ BrowserGlue.prototype = {
         isDefaultError = true;
       }
 
+      //CENTAURY PORTABLE CODE
+      let isPortable= winShellService.isPortableMode();
+      if (!isPortable) {
       if (isDefault) {
         let now = (Math.floor(Date.now() / 1000)).toString();
         Services.prefs.setCharPref("browser.shell.mostRecentDateSetAsDefault", now);
@@ -1027,7 +1031,7 @@ BrowserGlue.prototype = {
           DefaultBrowserCheck.prompt(RecentWindow.getMostRecentBrowserWindow());
         }.bind(this), Ci.nsIThread.DISPATCH_NORMAL);
       }
-    }
+    }}
 
     E10SAccessibilityCheck.onWindowsRestored();
   },

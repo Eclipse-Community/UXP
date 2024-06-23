@@ -112,7 +112,7 @@ public:
 private:
     friend class nsToolkitProfile;
     friend class nsToolkitProfileFactory;
-    friend nsresult NS_NewToolkitProfileService(nsIToolkitProfileService**);
+    friend nsresult NS_NewToolkitProfileService(nsIToolkitProfileService**,int);
 
     nsToolkitProfileService() :
         mDirty(false),
@@ -126,7 +126,7 @@ private:
         gService = nullptr;
     }
 
-    nsresult Init();
+    nsresult Init(int portable);
 
     nsresult CreateTimesInternal(nsIFile *profileDir);
 
@@ -382,8 +382,11 @@ NS_IMPL_ISUPPORTS(nsToolkitProfileService,
                   nsIToolkitProfileService)
 
 nsresult
-nsToolkitProfileService::Init()
+nsToolkitProfileService::Init(int portable)
 {
+    //MYPAL CODE
+    if(portable>0) return NS_OK;
+
     NS_ASSERTION(gDirServiceProvider, "No dirserviceprovider!");
     nsresult rv;
 
@@ -981,7 +984,7 @@ nsToolkitProfileFactory::CreateInstance(nsISupports* aOuter, const nsID& aIID,
     nsCOMPtr<nsIToolkitProfileService> profileService =
         nsToolkitProfileService::gService;
     if (!profileService) {
-        nsresult rv = NS_NewToolkitProfileService(getter_AddRefs(profileService));
+        nsresult rv = NS_NewToolkitProfileService(getter_AddRefs(profileService),0);
         if (NS_FAILED(rv))
             return rv;
     }
@@ -1006,12 +1009,12 @@ NS_NewToolkitProfileFactory(nsIFactory* *aResult)
 }
 
 nsresult
-NS_NewToolkitProfileService(nsIToolkitProfileService* *aResult)
+NS_NewToolkitProfileService(nsIToolkitProfileService* *aResult,int portable)
 {
     nsToolkitProfileService* profileService = new nsToolkitProfileService();
     if (!profileService)
         return NS_ERROR_OUT_OF_MEMORY;
-    nsresult rv = profileService->Init();
+    nsresult rv = profileService->Init(portable);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsToolkitProfileService::Init failed!");
         delete profileService;
