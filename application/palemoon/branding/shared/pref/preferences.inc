@@ -1,8 +1,8 @@
 // ===| General |==============================================================
 
-pref("startup.homepage_welcome_url","http://www.palemoon.org/firstrun.shtml");
+pref("startup.homepage_welcome_url","");
 
-pref("app.vendorURL", "http://www.palemoon.org/");
+pref("app.vendorURL", "https://eclipse.cx/");
 
 
 // User Interface

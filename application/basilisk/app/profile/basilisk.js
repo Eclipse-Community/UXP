@@ -182,6 +182,11 @@ pref("browser.fixup.domainwhitelist.localhost", true);
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
+// Firefox UA mode by default
+pref("general.useragent.compatMode", 2);
+pref("general.useragent.compatMode.gecko", true);
+pref("general.useragent.compatMode.firefox", true);
+
 pref("general.smoothScroll", true);
 #ifdef UNIX_BUT_NOT_MAC
 pref("general.autoScroll", false);

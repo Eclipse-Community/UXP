@@ -19,12 +19,6 @@
 #define UNIX_BUT_NOT_MAC
 #endif
 
-#ifdef XP_WIN
-lock_pref("browser.tabs.remote", false);
-lock_pref("browser.tabs.remote.force-enable", false);
-lock_pref("extensions.e10sBlocksEnabling", true);
-#endif
-
 pref("browser.chromeURL","chrome://browser/content/");
 pref("browser.hiddenWindowChromeURL", "chrome://browser/content/hiddenWindow.xul");
 
@@ -80,7 +74,7 @@ pref("browser.dictionaries.download.url", "https://@AM_DOMAIN@/dictionaries/");
 pref("browser.getdevtools.url","https://@AM_DOMAIN@/?component=integration&type=external&request=devtools");
 
 // Feedback URL
-pref("browser.feedback.url", "https://msfn.org/board/topic/177125-my-build-of-new-moon-temp-name-aka-pale-moon-fork-targetting-xp/?do=getNewComment");
+pref("browser.feedback.url", "https://board.eclipse.cx/replacewithforumpost");
 
 // Help button in slow startup dialog
 pref("browser.slowstartup.help.url", "https://support.mozilla.org/en-US/kb/firefox-takes-long-time-start-up");
@@ -235,10 +229,10 @@ pref("keyword.enabled", true);
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
-// Native UA mode by default for unbranded
-pref("general.useragent.compatMode", 0);
-pref("general.useragent.compatMode.gecko", false);
-pref("general.useragent.compatMode.firefox", false);
+// Firefox UA mode by default
+pref("general.useragent.compatMode", 2);
+pref("general.useragent.compatMode.gecko", true);
+pref("general.useragent.compatMode.firefox", true);
 
 pref("general.smoothScroll", true);
 #ifdef UNIX_BUT_NOT_MAC
@@ -261,7 +255,7 @@ pref("browser.defaultbrowser.notificationbar", false);
 // 0 = blank, 1 = home (browser.startup.homepage), 2 = last visited page, 3 = resume previous browser session
 // The behavior of option 3 is detailed at: http://wiki.mozilla.org/Session_Restore
 pref("browser.startup.page",                1);
-pref("browser.startup.homepage",            "chrome://branding/locale/browserconfig.properties");
+pref("browser.startup.homepage",            "");
 
 pref("browser.slowStartup.notificationDisabled", false);
 pref("browser.slowStartup.timeThreshold", 60000);

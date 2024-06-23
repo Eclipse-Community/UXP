@@ -8,6 +8,8 @@ MOZ_APP_BASENAME="Hydra"
 
 MOZ_APP_DISPLAYNAME=Hydra
 
+MOZ_APP_UA_NAME=Hydra
+
 MOZ_APP_VENDOR="Eclipse Community"
 
 MOZ_APP_FULLNAME="Eclipse Hydra"
