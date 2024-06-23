@@ -1518,27 +1518,6 @@ BrowserGlue.prototype = {
       Services.prefs.clearUserPref("security.cert_pinning.enforcement_level");
     }
 
-    if (currentUIVersion < 21) {
-      // Remove key4.db and cert9.db if those files exist
-      // XXX: Remove this code block once we actually start using them.
-      let dsCertFile = Cc["@mozilla.org/file/directory_service;1"]
-                    .getService(Ci.nsIProperties)
-                    .get("ProfD", Ci.nsIFile);
-      dsKeyFile = dsCertFile.clone();
-      dsCertFile.append("cert9.db");
-      if (dsCertFile.exists()) {
-        try {
-          dsCertFile.remove(false);
-        } catch(e) {}
-      }
-      dsKeyFile.append("key4.db");
-      if (dsKeyFile.exists()) {
-        try {
-          dsKeyFile.remove(false);
-        } catch(e) {}
-      }
-    }
-
     if (currentUIVersion < 23) {
       if (Services.prefs.prefHasUserValue("layers.acceleration.disabled")) {
         let HWADisabled = Services.prefs.getBoolPref("layers.acceleration.disabled");
