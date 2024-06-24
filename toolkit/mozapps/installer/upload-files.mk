@@ -15,11 +15,7 @@ else
    ifeq (,$(filter-out gtk2 gtk3 qt, $(MOZ_WIDGET_TOOLKIT)))
       MOZ_PKG_FORMAT  = BZ2
    else
-      ifeq (android,$(MOZ_WIDGET_TOOLKIT))
-          MOZ_PKG_FORMAT = APK
-      else
-          MOZ_PKG_FORMAT = TGZ
-      endif
+      MOZ_PKG_FORMAT = TGZ
    endif
 endif
 endif
@@ -381,14 +377,8 @@ ifndef MOZ_PACKAGER_FORMAT
   MOZ_PACKAGER_FORMAT = $(error MOZ_PACKAGER_FORMAT is not set)
 endif
 
-ifneq (android,$(MOZ_WIDGET_TOOLKIT))
-  OPTIMIZEJARS = 1
-  ifneq (gonk,$(MOZ_WIDGET_TOOLKIT))
-    ifdef NIGHTLY_BUILD
-      JAR_COMPRESSION ?= none
-    endif
-  endif
-endif
+# We optimize jars on all supported OS-es
+OPTIMIZEJARS = 1
 
 # A js binary is needed to perform verification of JavaScript minification.
 # We can only use the built binary when not cross-compiling. Environments
@@ -455,11 +445,6 @@ UPLOAD_FILES= \
   $(call QUOTED_WILDCARD,$(PKG_JSSHELL)) \
   $(call QUOTED_WILDCARD,$(DIST)/$(PKG_PATH)$(SYMBOL_FULL_ARCHIVE_BASENAME).zip) \
   $(if $(UPLOAD_EXTRA_FILES), $(foreach f, $(UPLOAD_EXTRA_FILES), $(wildcard $(DIST)/$(f))))
-
-ifdef MOZ_CODE_COVERAGE
-  UPLOAD_FILES += \
-    $(call QUOTED_WILDCARD,$(DIST)/$(PKG_PATH)$(CODE_COVERAGE_ARCHIVE_BASENAME).zip)
-endif
 
 ifdef UNIFY_DIST
   UNIFY_ARCH := $(notdir $(patsubst %/,%,$(dir $(UNIFY_DIST))))
