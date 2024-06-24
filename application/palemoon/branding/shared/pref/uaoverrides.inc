@@ -13,6 +13,10 @@
 
 // %OS_SLICE% macro is resolved at runtime, see MoonchildProductions/UXP/issues/1473
 
+// Special-case Cuckflare
+// With Lun3r useragent they send a challenge that fucks up the browser JS system. So we fake PM.
+pref("@GUAO_PREF@.cloudflare.com","Mozilla/5.0 (%OS_SLICE% rv:@GRE_VERSION@) @GRE_DATE_SLICE@ @PM_SLICE@");
+
 // Special-case AMO
 // We send the native UA slice now, since they no longer offer any compatible extensions for us.
 // This will result in an "only with Firefox" message which suits us fine, because it's the truth.
