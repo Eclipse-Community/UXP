@@ -3106,36 +3106,38 @@ toolbar[brighttext] #addonbar-closebutton {
 }
 
 @media (-moz-windows-default-theme) {
-  #navigator-toolbox > toolbar:not(:-moz-lwtheme),
-  #browser-bottombox:not(:-moz-lwtheme) {
-    background-color: var(--toolbar-custom-color);
-  }
-
-  .tabbrowser-tab:not(:-moz-lwtheme),
-  .tabs-newtab-button:not(:-moz-lwtheme) {
-    background-image: @toolbarShadowOnTab@, var(--tab-background),
-                      linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
-  }
-
-  .tabbrowser-tab:not(:-moz-lwtheme):hover,
-  .tabs-newtab-button:not(:-moz-lwtheme):hover {
-    background-image: @toolbarShadowOnTab@, var(--tab-background-hover),
-                      linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
-  }
-
-  .tabbrowser-tab[selected="true"]:not(:-moz-lwtheme) {
-    background-image: linear-gradient(#fff, var(--toolbar-highlight-top) 50%),
-                      linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
-  }
-
-  #main-window[tabsontop=false]:not([disablechrome]) .tabbrowser-tab[selected=true]:not(:-moz-lwtheme) {
-    background-image: @toolbarShadowOnTab@,
-                      linear-gradient(#fff, var(--toolbar-highlight-top) 50%),
-                      linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
-  }
-  
   @media (-moz-os-version: windows-vista),
-         (-moz-os-version: windows-win7) {
+         (-moz-os-version: windows-win7),
+         (-moz-os-version: windows-win8),
+         (-moz-os-version: windows-win10) {
+    #navigator-toolbox > toolbar:not(:-moz-lwtheme),
+    #browser-bottombox:not(:-moz-lwtheme) {
+      background-color: var(--toolbar-custom-color);
+    }
+
+    .tabbrowser-tab:not(:-moz-lwtheme),
+    .tabs-newtab-button:not(:-moz-lwtheme) {
+      background-image: @toolbarShadowOnTab@, var(--tab-background),
+                        linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
+    }
+
+    .tabbrowser-tab:not(:-moz-lwtheme):hover,
+    .tabs-newtab-button:not(:-moz-lwtheme):hover {
+      background-image: @toolbarShadowOnTab@, var(--tab-background-hover),
+                        linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
+    }
+
+    .tabbrowser-tab[selected="true"]:not(:-moz-lwtheme) {
+      background-image: linear-gradient(#fff, var(--toolbar-highlight-top) 50%),
+                        linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
+    }
+
+    #main-window[tabsontop=false]:not([disablechrome]) .tabbrowser-tab[selected=true]:not(:-moz-lwtheme) {
+      background-image: @toolbarShadowOnTab@,
+                        linear-gradient(#fff, var(--toolbar-highlight-top) 50%),
+                        linear-gradient(var(--toolbar-custom-color), var(--toolbar-custom-color));
+    }
+
     :root:not(:-moz-lwtheme) {
       --toolbox-after-color: #aabccf;
     }
@@ -3850,11 +3852,16 @@ toolbar[brighttext] #addonbar-closebutton {
 
 @media not all and (-moz-windows-compositor) {
   @media (-moz-windows-default-theme) {
-    #main-window {
-      background-color: rgb(185,209,234);
-    }
-    #main-window:-moz-window-inactive {
-      background-color: rgb(215,228,242);
+    @media (-moz-os-version: windows-vista),
+           (-moz-os-version: windows-win7),
+           (-moz-os-version: windows-win8),
+           (-moz-os-version: windows-win10) {
+      #main-window {
+        background-color: rgb(185,209,234);
+      }
+      #main-window:-moz-window-inactive {
+        background-color: rgb(215,228,242);
+      }
     }
 
     #toolbar-menubar:not([autohide=true]):not(:-moz-lwtheme),
