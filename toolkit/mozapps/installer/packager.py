@@ -32,21 +32,6 @@ import os
 from StringIO import StringIO
 import subprocess
 import platform
-import mozinfo
-
-# List of libraries to shlibsign.
-SIGN_LIBS = [
-    'softokn3',
-    'nssdbm3',
-    'freebl3',
-    'freeblpriv3',
-    'freebl_32fpu_3',
-    'freebl_32int_3',
-    'freebl_32int64_3',
-    'freebl_64fpu_3',
-    'freebl_64int_3',
-]
-
 
 class ToolLauncher(object):
     '''
@@ -107,23 +92,6 @@ class ToolLauncher(object):
         return self.tooldir is not None
 
 launcher = ToolLauncher()
-
-
-class LibSignFile(File):
-    '''
-    File class for shlibsign signatures.
-    '''
-    def copy(self, dest, skip_if_older=True):
-        assert isinstance(dest, basestring)
-        # os.path.getmtime returns a result in seconds with precision up to the
-        # microsecond. But microsecond is too precise because shutil.copystat
-        # only copies milliseconds, and seconds is not enough precision.
-        if os.path.exists(dest) and skip_if_older and \
-                int(os.path.getmtime(self.path) * 1000) <= \
-                int(os.path.getmtime(dest) * 1000):
-            return False
-        if launcher.launch(['shlibsign', '-v', '-o', dest, '-i', self.path]):
-            errors.fatal('Error while signing %s' % self.path)
 
 
 def precompile_cache(registry, source_path, gre_path, app_path):
@@ -372,18 +340,6 @@ def main():
             removals = RemovedFiles(copier)
             preprocess(removals_in, removals, defines)
             copier.add(mozpath.join(respath, 'removed-files'), removals)
-
-    # shlibsign libraries
-    if launcher.can_launch():
-        if not mozinfo.isMac and buildconfig.substs.get('COMPILE_ENVIRONMENT'):
-            for lib in SIGN_LIBS:
-                libbase = mozpath.join(respath, '%s%s') \
-                    % (buildconfig.substs['DLL_PREFIX'], lib)
-                libname = '%s%s' % (libbase, buildconfig.substs['DLL_SUFFIX'])
-                if copier.contains(libname):
-                    copier.add(libbase + '.chk',
-                               LibSignFile(os.path.join(args.destination,
-                                                        libname)))
 
     # Setup preloading
     if args.jarlog and os.path.exists(args.jarlog):
