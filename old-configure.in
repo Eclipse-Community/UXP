@@ -5438,9 +5438,9 @@ DIRECTIVE4=`$PYTHON $_topsrcdir/build/directive4.py $DIRECTIVE4_LIST`
 
 if test -n "$DIRECTIVE4"; then
     if test -n "$MC_PRIVATE_BUILD"; then
-        AC_MSG_WARN([Private Build - The configuration you have chosen to use with official branding deviates from official build configuration. Your build is thus for personal and private use only and must not be (re)distributed - Please see: http://www.palemoon.org/redist.shtml])
-    else
-        AC_MSG_ERROR([Branding Violation - Please see: http://www.palemoon.org/redist.shtml])
+        AC_MSG_WARN([Please do not redistribute this build with official branding if you are not part of Eclipse Community.])
+		else
+        AC_MSG_ERROR([Please use unofficial branding for this build. If you really wish to use official branding, set MC_PRIVATE_BUILD=1 as an environment variable.])
     fi
 fi
 
