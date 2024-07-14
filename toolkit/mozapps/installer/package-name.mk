@@ -14,17 +14,6 @@ PACKAGE_NAME_MK_INCLUDED := 1
 ifndef MOZ_PKG_VERSION
 # Normally MOZ_PKG_VERSION is set to the application version
 MOZ_PKG_VERSION = $(MOZ_APP_VERSION)
-
-# This overrides it with the BUILDID for Basilisk and IceWeasel
-# We do it this way because makefile's conditional checking is very
-# primitive or else very cryptic
-ifdef MC_BASILISK
-MOZ_PKG_VERSION = $(BUILDID)
-endif
-
-ifdef HYPE_ICEWEASEL
-MOZ_PKG_VERSION = $(BUILDID)
-endif
 endif
 
 ifndef MOZ_PKG_PLATFORM
