@@ -193,7 +193,8 @@ case "$target" in
         19*)
             _CC_SUITE=14
             MSVS_VERSION=2015
-            MSVC_C_RUNTIME_DLL=vcruntime140.dll
+            MSVC_C_RUNTIME_DLL=vcruntime*.dll
+            MSVC_CMP_RUNTIME_DLL=vcomp140.dll
             MSVC_CXX_RUNTIME_DLL=msvcp140.dll
 
             # C5026: move constructor was implicitly defined as deleted
@@ -212,6 +213,7 @@ case "$target" in
         esac
         AC_SUBST(MSVS_VERSION)
         AC_SUBST(MSVC_C_RUNTIME_DLL)
+        AC_SUBST(MSVC_CMP_RUNTIME_DLL)
         AC_SUBST(MSVC_CXX_RUNTIME_DLL)
 
         # Check linker version
