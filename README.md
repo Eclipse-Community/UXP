@@ -1,3 +1,16 @@
+Repo for Eclipse Lun3r and Eclipse Hydra
+
+Eclipse Lun3r is a fork of Pale Moon made for Windows XP. Some advantages over upstream and roytam1's New Moon are more optimzations and better interoperability with upstream. (using SQL storage intead of DBM)
+
+![big1](https://github.com/user-attachments/assets/e49f28fa-824f-4482-8ee7-e2785bf086eb)
+
+Eclipse Hydra is a fork of Basilisk made for Windows XP. Some advantages over upstream and roytam1's Serpent are more optimzations and better interoperability with upstream. (using SQL storage intead of DBM)
+
+![big1](https://github.com/user-attachments/assets/0bd7d7df-0d9a-46b3-9273-2ba7cae5fbdb)
+
+# Original repository readme
+
+
 # Unified XUL Platform (UXP)
 
 This repository holds the code for a unified application platform for XUL-based
