@@ -34,15 +34,28 @@
     opacity: 0 !important;
 }
 
-
-#main-window::after {
-    padding: 0 132px; /* AppMenu button/wincontrols width offset */
-    left: 0;
-    right: 0;
+@supports not -moz-bool-pref("browser.lun3r.brand") {
+  #main-window::after {
+      padding: 0 132px; /* AppMenu button/wincontrols width offset */
+      left: 0;
+      right: 0;
+  }
+  
+  #main-window[privatebrowsingmode=temporary]::after {
+      padding: 0px 132px 0px 152px; /* AppMenu button width offset for PB mode */
+  }
 }
 
-#main-window[privatebrowsingmode=temporary]::after {
-    padding: 0px 132px 0px 152px; /* AppMenu button width offset for PB mode */
+@supports -moz-bool-pref("browser.lun3r.brand") {
+  #main-window::after {
+      padding: 0 148px; /* AppMenu button/wincontrols width offset */
+      left: 0;
+      right: 0;
+  }
+  
+  #main-window[privatebrowsingmode=temporary]::after {
+      padding: 0px 132px 0px 168px; /* AppMenu button width offset for PB mode */
+  }
 }
 
 #main-window[sizemode="normal"]::after {

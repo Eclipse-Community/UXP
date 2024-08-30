@@ -74,7 +74,7 @@ pref("browser.dictionaries.download.url", "https://@AM_DOMAIN@/dictionaries/");
 pref("browser.getdevtools.url","https://@AM_DOMAIN@/?component=integration&type=external&request=devtools");
 
 // Feedback URL
-pref("browser.feedback.url", "");
+pref("browser.feedback.url", "https://board.eclipse.cx/viewtopic.php?t=710");
 
 // Help button in slow startup dialog
 pref("browser.slowstartup.help.url", "https://support.mozilla.org/en-US/kb/firefox-takes-long-time-start-up");

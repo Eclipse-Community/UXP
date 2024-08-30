@@ -45,14 +45,14 @@
 #ifdef MC_PRIVATE_BUILD
           This is a private build of Pale Moon. If you did not manually build this copy from source yourself, then please download an official version from the <label class="text-link" href="http://www.palemoon.org/">Pale Moon website</label>.
 #else
-          <label class="text-link" href="http://www.palemoon.org">Pale Moon</label> is released by <label class="text-link" href="http://www.moonchildproductions.info">Moonchild Productions</label>.
+          <label class="text-link" href="https://eclipse.cx/projects/lun3r">&brandShorterName;</label> is released by <label class="text-link" href="https://eclipse.cx">&vendorShortName;</label>.
         </description>
         <description class="text-credits text-center">
           Special thanks to all our supporters and donors for making this browser possible!
         </description>
         <description class="text-credits">
-          If you wish to contribute, please consider helping out by providing support to other users on the <label class="text-link" href="https://forum.palemoon.org/">Pale Moon forum</label>
-          or getting involved in our development by tackling some of the issues found in our GitHub issue tracker.
+          If you wish to contribute, please consider helping out by providing support to other users on the <label class="text-link" href="https://board.eclipse.cx/">&vendorShortName; forum</label>
+          or getting involved in our development by tackling some of the issues found in our <label class="text-link" href="https://github.com/Eclipse-Community/UXP/">GitHub issue tracker</label>.
 #endif
 #else
           &brandFullName; is released by &vendorShortName;.

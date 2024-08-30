@@ -122,9 +122,9 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 Name "${BrandFullName}"
 OutFile "setup.exe"
 !ifdef HAVE_64BIT_BUILD
-  InstallDir "$PROGRAMFILES64\${BrandFullName}\"
+  InstallDir "$PROGRAMFILES64\${AppRegName}\"
 !else
-  InstallDir "$PROGRAMFILES32\${BrandFullName}\"
+  InstallDir "$PROGRAMFILES32\${AppRegName}\"
 !endif
 ShowInstDetails nevershow
 
@@ -1034,7 +1034,9 @@ Function .onInit
 ; The commands inside this ifndef are needed prior to NSIS 3.0a2 and can be
 ; removed after we require NSIS 3.0a2 or greater.
 !ifndef NSIS_PACKEDVERSION
-  System::Call 'user32::SetProcessDPIAware()'
+  ${If} ${AtLeastWinVista}
+    System::Call 'user32::SetProcessDPIAware()'
+  ${EndIf}
 !endif
 
   !insertmacro InitInstallOptionsFile "options.ini"
