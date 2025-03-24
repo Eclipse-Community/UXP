@@ -369,6 +369,31 @@ IsDefaultBrowserWin8(bool aCheckAllTypes, bool* aIsDefaultBrowser)
   }
 }
 
+NS_IMETHODIMP
+nsWindowsShellService::CancelPortableMode()
+{
+  nsresult rv;
+
+  nsCOMPtr<nsIFile> portmodemark;
+
+  rv = NS_GetSpecialDirectory(NS_OS_CURRENT_PROCESS_DIR,
+                              getter_AddRefs(portmodemark));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = portmodemark->AppendNative(NS_LITERAL_CSTRING("pmprt.mod"));
+
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  bool fileExists;
+  rv = portmodemark->Exists(&fileExists);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (fileExists)
+  portmodemark->Remove(false);
+
+  return NS_OK;
+}
+
 /*
  * Query's the AAR for the default status.
  * This only checks for BasiliskURL and if aCheckAllTypes is set, then
