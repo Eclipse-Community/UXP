@@ -1036,8 +1036,8 @@ Function .onInit
   ; SSE2 instruction set is available. Result returned in $R7.
   System::Call "kernel32::IsProcessorFeaturePresent(i 10)i .R7"
 
-  ; Windows NT 6.0 and lower are not supported on any architecture.
-  ${Unless} ${AtLeastWin7}
+  ; Windows NT 5.0 and lower are not supported on any architecture.
+  ${Unless} ${AtLeastWinXP}
     ${If} "$R7" == "0"
       strCpy $R7 "$(WARN_MIN_SUPPORTED_OSVER_CPU_MSG)"
     ${Else}

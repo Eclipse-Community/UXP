@@ -3233,9 +3233,6 @@ if test -n "$MOZ_ANGLE_RENDERER"; then
   ######################################
   # Find _43 for use by XP.
 
-  if test "$HAVE_64BIT_BUILD"; then
-    AC_MSG_RESULT([We are building a 64-bit binary, skip checking d3dcompiler_43.])
-  else
     # Get the SDK path from the registry.
     # First try to get the June 2010 SDK
     MOZ_DIRECTX_SDK_REG_KEY=`reg query 'HKLM\Software\Microsoft\DirectX' //s | grep 'Microsoft DirectX SDK (June 2010)' | head -n 1`
@@ -3283,7 +3280,6 @@ if test -n "$MOZ_ANGLE_RENDERER"; then
     else
       AC_MSG_RESULT([Couldn't find an acceptable DirectX SDK for ANGLE, needed for d3dcompiler_43.])
     fi
-  fi
 
   ######################################
   # Check that we found what we needed.
