@@ -1037,13 +1037,8 @@ Function .onInit
   StrCpy $LANGUAGE 0
   ${SetBrandNameVars} "$EXEDIR\core\distribution\setup.ini"
 
-  ; Don't install on systems that don't support SSE2. The parameter value of
-  ; 10 is for PF_XMMI64_INSTRUCTIONS_AVAILABLE which will check whether the
-  ; SSE2 instruction set is available. Result returned in $R7.
-  System::Call "kernel32::IsProcessorFeaturePresent(i 10)i .R7"
-
-  ; Windows NT 6.0 and lower are not supported on any architecture.
-  ${Unless} ${AtLeastWin7}
+  ; Windows NT 5.0 and lower are not supported on any architecture.
+  ${Unless} ${AtLeastWinXP}
     ${If} "$R7" == "0"
       strCpy $R7 "$(WARN_MIN_SUPPORTED_OSVER_CPU_MSG)"
     ${Else}
@@ -1054,13 +1049,6 @@ Function .onInit
     Quit
   ${EndUnless}
 
-  ; SSE2 support
-  ${If} "$R7" == "0"
-    MessageBox MB_OKCANCEL|MB_ICONSTOP "$(WARN_MIN_SUPPORTED_CPU_MSG)" IDCANCEL +2
-    ExecShell "open" "${URLSystemRequirements}"
-    Quit
-  ${EndIf}
-
 !ifdef HAVE_64BIT_BUILD
   ${Unless} ${RunningX64}
     MessageBox MB_OKCANCEL|MB_ICONSTOP "$(WARN_MIN_SUPPORTED_OSVER_MSG)" IDCANCEL +2
@@ -1069,8 +1057,6 @@ Function .onInit
   ${EndUnless}
   SetRegView 64
 !endif
-
-  ${InstallOnInitCommon} "$(WARN_MIN_SUPPORTED_OSVER_CPU_MSG)"
 
 ; The commands inside this ifndef are needed prior to NSIS 3.0a2 and can be
 ; removed after we require NSIS 3.0a2 or greater.
