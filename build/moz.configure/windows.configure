@@ -193,9 +193,9 @@ def valid_ucrt_sdk_dir(windows_sdk_dir, windows_sdk_dir_env):
             # contain the Universal CRT SDK. When the main SDK is 8.1, there
             # is, however, supposed to be a reduced install of the SDK 10
             # with the UCRT.
-            if version != 'include':
-                sdks[d] = Version(version), sdk
-                continue
+            #if version != 'include':
+            sdks[d] = Version(version), sdk
+            continue
         if d == windows_sdk_dir_env:
             # When WINDOWSSDKDIR is set in the environment and we can't find the
             # Universal CRT SDK, chances are this is a start-shell-msvc*.bat
