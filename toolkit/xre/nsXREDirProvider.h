@@ -37,6 +37,8 @@ public:
 
   static nsXREDirProvider* GetSingleton();
 
+  nsresult Portable(uint32_t *aResult);
+
   nsresult GetUserProfilesRootDir(nsIFile** aResult,
                                   const nsACString* aProfileName,
                                   const nsACString* aAppName,

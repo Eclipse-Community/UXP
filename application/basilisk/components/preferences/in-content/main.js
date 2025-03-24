@@ -550,6 +550,8 @@ var gMainPane = {
         defaultBrowserBox.hidden = true;
         return;
       }
+      var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+      if (profService.portable()==1) return;
       let setDefaultPane = document.getElementById("setDefaultPane");
       let isDefault = shellSvc.isDefaultBrowser(false, true);
       setDefaultPane.selectedIndex = isDefault ? 1 : 0;
@@ -568,10 +570,34 @@ var gMainPane = {
       let alwaysCheckPref = document.getElementById("browser.shell.checkDefaultBrowser");
       alwaysCheckPref.value = true;
 
+
       let shellSvc = getShellService();
+      var profService = Components.classes["@mozilla.org/toolkit/profile-service;1"].getService(Components.interfaces.nsIToolkitProfileService);
+      let isPortable;
       if (!shellSvc)
         return;
       try {
+    isPortable = profService.portable();
+    if (isPortable==1) {
+          Components.utils.import("resource:///modules/RecentWindow.jsm");
+          var win = RecentWindow.getMostRecentBrowserWindow();
+          var brandBundle = win.document.getElementById("bundle_brand");
+          var shellBundle = win.document.getElementById("bundle_shell");
+
+          var brandShortName = brandBundle.getString("brandShortName");
+          var promptTitle = shellBundle.getString("PortablemodeTitle");
+          var promptMessage = shellBundle.getFormattedString("PortablemodeMessage",
+                                                              [brandShortName]);
+ //       var checkEveryTime = { value: shouldCheck };
+          var ps = Services.prompt;
+          var rv = ps.confirmEx(win, promptTitle, promptMessage,
+                                ps.STD_YES_NO_BUTTONS,
+                                null, null, null, null, { });//, checkboxLabel, checkEveryTime);
+          if (rv == 0) {
+	  shellSvc.cancelPortableMode();
+          isPortable=28;
+          } else return;
+        }
         shellSvc.setDefaultBrowser(true, false);
       } catch (ex) {
         Cu.reportError(ex);
@@ -580,6 +606,7 @@ var gMainPane = {
 
       let selectedIndex = shellSvc.isDefaultBrowser(false, true) ? 1 : 0;
       document.getElementById("setDefaultPane").selectedIndex = selectedIndex;
+      if (isPortable==28) Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit |  Ci.nsIAppStartup.eRestartNotSameProfile);
     }
   },
 };
