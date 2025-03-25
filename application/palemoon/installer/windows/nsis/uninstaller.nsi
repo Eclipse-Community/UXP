@@ -75,6 +75,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 !insertmacro InitHashAppModelId
 !insertmacro IsHandlerForInstallDir
 !insertmacro IsPinnedToTaskBar
+!insertmacro IsUserAdmin
 !insertmacro LogDesktopShortcut
 !insertmacro LogQuickLaunchShortcut
 !insertmacro LogStartMenuShortcut
@@ -245,6 +246,7 @@ Section "Uninstall"
     ${un.RegCleanFileHandler}  ".oga"  "PaleMoonHTML"
     ${un.RegCleanFileHandler}  ".ogg"  "PaleMoonHTML"
     ${un.RegCleanFileHandler}  ".ogv"  "PaleMoonHTML"
+    ${un.RegCleanFileHandler}  ".pdf"  "PaleMoonHTML"
     ${un.RegCleanFileHandler}  ".webm"  "PaleMoonHTML"
   ${EndIf}
 

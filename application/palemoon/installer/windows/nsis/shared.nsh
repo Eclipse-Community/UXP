@@ -322,9 +322,11 @@
     WriteRegStr SHCTX "$0\.xhtml" "" "PaleMoonHTML"
   ${EndIf}
 
+  ${AddAssociationIfNoneExist} ".pdf"
   ${AddAssociationIfNoneExist} ".oga"
   ${AddAssociationIfNoneExist} ".ogg"
   ${AddAssociationIfNoneExist} ".ogv"
+  ${AddAssociationIfNoneExist} ".pdf"
   ${AddAssociationIfNoneExist} ".webm"
 
   ; An empty string is used for the 5th param because PaleMoonHTML is not a
@@ -620,9 +622,11 @@
   ${EndIf}
 
   ; Remove possibly badly associated file types
+  ${FixBadFileAssociation} ".pdf"
   ${FixBadFileAssociation} ".oga"
   ${FixBadFileAssociation} ".ogg"
   ${FixBadFileAssociation} ".ogv"
+  ${FixBadFileAssociation} ".pdf"
   ${FixBadFileAssociation} ".webm"
 !macroend
 !define FixClassKeys "!insertmacro FixClassKeys"
@@ -840,17 +844,24 @@
       ClearErrors
       WriteIniStr "$0" "TASKBAR" "Migrated" "true"
       ${If} ${AtLeastWin7}
-        ; No need to check the default on Win8 and later
-        ${If} ${AtMostWin2008R2}
-          ; Check if the Pale Moon is the http handler for this user
-          SetShellVarContext current ; Set SHCTX to the current user
-          ${IsHandlerForInstallDir} "http" $R9
-          ${If} $TmpVal == "HKLM"
-            SetShellVarContext all ; Set SHCTX to all users
+        ; If we didn't run the stub installer, AddTaskbarSC will be empty.
+        ; We determine whether to pin based on whether we're the default
+        ; browser, or if we're on win8 or later, we always pin.
+        ${If} $AddTaskbarSC == ""
+          ; No need to check the default on Win8 and later
+          ${If} ${AtMostWin2008R2}
+            ; Check if the Basilisk is the http handler for this user
+            SetShellVarContext current ; Set SHCTX to the current user
+            ${IsHandlerForInstallDir} "http" $R9
+            ${If} $TmpVal == "HKLM"
+              SetShellVarContext all ; Set SHCTX to all users
+            ${EndIf}
           ${EndIf}
-        ${EndIf}
-        ${If} "$R9" == "true"
-        ${OrIf} ${AtLeastWin8}
+          ${If} "$R9" == "true"
+          ${OrIf} ${AtLeastWin8}
+            ${PinToTaskBar}
+          ${EndIf}
+        ${ElseIf} $AddTaskbarSC == "1"
           ${PinToTaskBar}
         ${EndIf}
       ${EndIf}
