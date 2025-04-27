@@ -56,6 +56,7 @@ var ShellServiceInternal = {
       return false;
     }
 
+// fix this
 #ifdef XP_WIN
     let optOutValue = WindowsRegistry.readRegKey(Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
                                                  "Software\\Mozilla\\PaleMoon",
