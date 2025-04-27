@@ -60,6 +60,7 @@ let ShellServiceInternal = {
       return false;
     }
 
+// fix this
     if (AppConstants.platform == "win") {
       let optOutValue = WindowsRegistry.readRegKey(Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
                                                    "Software\\Mozilla\\Basilisk",
