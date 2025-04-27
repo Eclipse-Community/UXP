@@ -1,4 +1,4 @@
 ;!@Install@!UTF-8!
-Title="Basilisk"
+Title="Serpent"
 RunProgram="setup.exe"
 ;!@InstallEnd@!
