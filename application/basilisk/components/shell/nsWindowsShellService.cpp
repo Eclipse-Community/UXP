@@ -101,18 +101,18 @@ OpenKeyForReading(HKEY aKeyRoot, const nsAString& aKeyName, HKEY* aKey)
 //    .htm .html .shtml .xht .xhtml 
 //   are mapped like so:
 //
-//   HKCU\SOFTWARE\Classes\.<ext>\      (default)         REG_SZ     BasiliskHTML
+//   HKCU\SOFTWARE\Classes\.<ext>\      (default)         REG_SZ     SerpentHTML
 //
 //   as aliases to the class:
 //
-//   HKCU\SOFTWARE\Classes\BasiliskHTML\
+//   HKCU\SOFTWARE\Classes\SerpentHTML\
 //     DefaultIcon                      (default)         REG_SZ     <apppath>,1
 //     shell\open\command               (default)         REG_SZ     <apppath> -osint -url "%1"
 //     shell\open\ddeexec               (default)         REG_SZ     <empty string>
 //
 // - Windows Vista and above Protocol Handler
 //
-//   HKCU\SOFTWARE\Classes\BasiliskURL\  (default)         REG_SZ     <appname> URL
+//   HKCU\SOFTWARE\Classes\SerpentURL\  (default)         REG_SZ     <appname> URL
 //                                      EditFlags         REG_DWORD  2
 //                                      FriendlyTypeName  REG_SZ     <appname> URL
 //     DefaultIcon                      (default)         REG_SZ     <apppath>,1
@@ -156,7 +156,8 @@ typedef struct {
   const char* oldValueData;
 } SETTING;
 
-#define APP_REG_NAME L"Basilisk"
+// Find a way to unhardcode this
+#define APP_REG_NAME L"Serpent"
 #define VAL_FILE_ICON "%APPPATH%,1"
 #define VAL_OPEN "\"%APPPATH%\" -osint -url \"%1\""
 #define OLD_VAL_OPEN "\"%APPPATH%\" -requestPending -osint -url \"%1\""
@@ -182,10 +183,10 @@ static SETTING gSettings[] = {
   // File Handler Class
   // ***keep this as the first entry because when aForAllTypes is not set below
   // it will skip over this check.***
-  { MAKE_KEY_NAME1("BasiliskHTML", SOC), VAL_OPEN, OLD_VAL_OPEN },
+  { MAKE_KEY_NAME1("SerpentHTML", SOC), VAL_OPEN, OLD_VAL_OPEN },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME1("BasiliskURL", SOC), VAL_OPEN, OLD_VAL_OPEN },
+  { MAKE_KEY_NAME1("SerpentURL", SOC), VAL_OPEN, OLD_VAL_OPEN },
 
   // Protocol Handlers
   { MAKE_KEY_NAME1("HTTP", DI), VAL_FILE_ICON },
@@ -199,10 +200,10 @@ static SETTING gSettings[] = {
 // are incorrect they are fixed without notifying the user.
 static SETTING gDDESettings[] = {
   // File Handler Class
-  { MAKE_KEY_NAME1("Software\\Classes\\BasiliskHTML", SOD) },
+  { MAKE_KEY_NAME1("Software\\Classes\\SerpentHTML", SOD) },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME1("Software\\Classes\\BasiliskURL", SOD) },
+  { MAKE_KEY_NAME1("Software\\Classes\\SerpentURL", SOD) },
 
   // Protocol Handlers
   { MAKE_KEY_NAME1("Software\\Classes\\FTP", SOD) },
@@ -339,7 +340,7 @@ IsAARDefault(const RefPtr<IApplicationAssociationRegistration>& pAAR,
     return false;
   }
 
-  LPCWSTR progID = isProtocol ? L"BasiliskURL" : L"BasiliskHTML";
+  LPCWSTR progID = isProtocol ? L"SerpentURL" : L"SerpentHTML";
   bool isDefault = !wcsicmp(registeredApp, progID);
   CoTaskMemFree(registeredApp);
 
@@ -396,8 +397,8 @@ nsWindowsShellService::CancelPortableMode()
 
 /*
  * Query's the AAR for the default status.
- * This only checks for BasiliskURL and if aCheckAllTypes is set, then
- * it also checks for BasiliskHTML.  Note that those ProgIDs are shared
+ * This only checks for SerpentURL and if aCheckAllTypes is set, then
+ * it also checks for SerpentHTML.  Note that those ProgIDs are shared
  * by all Basilisk browsers.
 */
 bool

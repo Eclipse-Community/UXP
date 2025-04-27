@@ -13,9 +13,9 @@
   ; start menu tile.  In case there are 2 Basilisk installations, we only do
   ; this if the application being updated is the default.
   ReadRegStr $0 HKCU "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
-  ${If} $0 == "BasiliskURL"
+  ${If} $0 == "SerpentURL"
   ${AndIf} $9 != 0 ; We're not running in session 0
-    ReadRegStr $0 HKCU "Software\Classes\BasiliskURL\shell\open\command" ""
+    ReadRegStr $0 HKCU "Software\Classes\SerpentURL\shell\open\command" ""
     ${GetPathFromString} "$0" $0
     ${GetParent} "$0" $0
     ${If} ${FileExists} "$0"
@@ -282,9 +282,9 @@
   ClearErrors
   EnumRegKey $7 HKCR "${FILE_TYPE}" 0
   ${If} ${Errors}
-    WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}"  "" "BasiliskHTML"
+    WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}"  "" "SerpentHTML"
   ${EndIf}
-  WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}\OpenWithProgids" "BasiliskHTML" ""
+  WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}\OpenWithProgids" "SerpentHTML" ""
 !macroend
 !define AddAssociationIfNoneExist "!insertmacro AddAssociationIfNoneExist"
 
@@ -296,30 +296,30 @@
   StrCpy $0 "SOFTWARE\Classes"
   StrCpy $2 "$\"$8$\" -osint -url $\"%1$\""
 
-  ; Associate the file handlers with BasiliskHTML
+  ; Associate the file handlers with SerpentHTML
   ReadRegStr $6 SHCTX "$0\.htm" ""
-  ${If} "$6" != "BasiliskHTML"
-    WriteRegStr SHCTX "$0\.htm"   "" "BasiliskHTML"
+  ${If} "$6" != "SerpentHTML"
+    WriteRegStr SHCTX "$0\.htm"   "" "SerpentHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.html" ""
-  ${If} "$6" != "BasiliskHTML"
-    WriteRegStr SHCTX "$0\.html"  "" "BasiliskHTML"
+  ${If} "$6" != "SerpentHTML"
+    WriteRegStr SHCTX "$0\.html"  "" "SerpentHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.shtml" ""
-  ${If} "$6" != "BasiliskHTML"
-    WriteRegStr SHCTX "$0\.shtml" "" "BasiliskHTML"
+  ${If} "$6" != "SerpentHTML"
+    WriteRegStr SHCTX "$0\.shtml" "" "SerpentHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.xht" ""
-  ${If} "$6" != "BasiliskHTML"
-    WriteRegStr SHCTX "$0\.xht"   "" "BasiliskHTML"
+  ${If} "$6" != "SerpentHTML"
+    WriteRegStr SHCTX "$0\.xht"   "" "SerpentHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.xhtml" ""
-  ${If} "$6" != "BasiliskHTML"
-    WriteRegStr SHCTX "$0\.xhtml" "" "BasiliskHTML"
+  ${If} "$6" != "SerpentHTML"
+    WriteRegStr SHCTX "$0\.xhtml" "" "SerpentHTML"
   ${EndIf}
 
   ${AddAssociationIfNoneExist} ".pdf"
@@ -329,12 +329,12 @@
   ${AddAssociationIfNoneExist} ".pdf"
   ${AddAssociationIfNoneExist} ".webm"
 
-  ; An empty string is used for the 5th param because BasiliskHTML is not a
+  ; An empty string is used for the 5th param because SerpentHTML is not a
   ; protocol handler
-  ${AddDisabledDDEHandlerValues} "BasiliskHTML" "$2" "$8,1" \
+  ${AddDisabledDDEHandlerValues} "SerpentHTML" "$2" "$8,1" \
                                  "${AppRegName} HTML Document" ""
 
-  ${AddDisabledDDEHandlerValues} "BasiliskURL" "$2" "$8,1" "${AppRegName} URL" \
+  ${AddDisabledDDEHandlerValues} "SerpentURL" "$2" "$8,1" "${AppRegName} URL" \
                                  "true"
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handlers already have a display name and the additional keys
@@ -404,35 +404,35 @@
   WriteRegStr ${RegKey} "$0\Capabilities" "ApplicationIcon" "$8,0"
   WriteRegStr ${RegKey} "$0\Capabilities" "ApplicationName" "${BrandShortName}"
 
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".htm"   "BasiliskHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".html"  "BasiliskHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".shtml" "BasiliskHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xht"   "BasiliskHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xhtml" "BasiliskHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".htm"   "SerpentHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".html"  "SerpentHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".shtml" "SerpentHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xht"   "SerpentHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xhtml" "SerpentHTML"
 
   WriteRegStr ${RegKey} "$0\Capabilities\StartMenu" "StartMenuInternet" "$R9"
 
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "ftp"    "BasiliskURL"
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "http"   "BasiliskURL"
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "https"  "BasiliskURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "ftp"    "SerpentURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "http"   "SerpentURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "https"  "SerpentURL"
 
   ; Vista Registered Application
   WriteRegStr ${RegKey} "Software\RegisteredApplications" "${AppRegName}" "$0\Capabilities"
 !macroend
 !define SetStartMenuInternet "!insertmacro SetStartMenuInternet"
 
-; The IconHandler reference for BasiliskHTML can end up in an inconsistent state
+; The IconHandler reference for SerpentHTML can end up in an inconsistent state
 ; due to changes not being detected by the IconHandler for side by side
 ; installs (see bug 268512). The symptoms can be either an incorrect icon or no
 ; icon being displayed for files associated with Basilisk (does not use SHCTX).
 !macro FixShellIconHandler RegKey
   ClearErrors
-  ReadRegStr $1 ${RegKey} "Software\Classes\BasiliskHTML\ShellEx\IconHandler" ""
+  ReadRegStr $1 ${RegKey} "Software\Classes\SerpentHTML\ShellEx\IconHandler" ""
   ${Unless} ${Errors}
-    ReadRegStr $1 ${RegKey} "Software\Classes\BasiliskHTML\DefaultIcon" ""
+    ReadRegStr $1 ${RegKey} "Software\Classes\SerpentHTML\DefaultIcon" ""
     ${GetLongPath} "$INSTDIR\${FileMainEXE}" $2
     ${If} "$1" != "$2,1"
-      WriteRegStr ${RegKey} "Software\Classes\BasiliskHTML\DefaultIcon" "" "$2,1"
+      WriteRegStr ${RegKey} "Software\Classes\SerpentHTML\DefaultIcon" "" "$2,1"
     ${EndIf}
   ${EndUnless}
 !macroend
@@ -567,7 +567,7 @@
 ; HKCU Software\Classes keys when associating handlers. The fix uses the merged
 ; view in HKCR to check for existance of an existing association. This macro
 ; cleans affected installations by removing the HKLM and HKCU value if it is set
-; to BasiliskHTML when there is a value for PersistentHandler or by removing the
+; to SerpentHTML when there is a value for PersistentHandler or by removing the
 ; HKCU value when the HKLM value has a value other than an empty string.
 !macro FixBadFileAssociation FILE_TYPE
   ; Only delete the default value in case the key has values for OpenWithList,
@@ -576,16 +576,16 @@
   ReadRegStr $1 HKLM "Software\Classes\${FILE_TYPE}" ""
   ReadRegStr $2 HKCR "${FILE_TYPE}\PersistentHandler" ""
   ${If} "$2" != ""
-    ; Since there is a persistent handler remove BasiliskHTML as the default
-    ; value from both HKCU and HKLM if it set to BasiliskHTML.
-    ${If} "$0" == "BasiliskHTML"
+    ; Since there is a persistent handler remove SerpentHTML as the default
+    ; value from both HKCU and HKLM if it set to SerpentHTML.
+    ${If} "$0" == "SerpentHTML"
       DeleteRegValue HKCU "Software\Classes\${FILE_TYPE}" ""
     ${EndIf}
-    ${If} "$1" == "BasiliskHTML"
+    ${If} "$1" == "SerpentHTML"
       DeleteRegValue HKLM "Software\Classes\${FILE_TYPE}" ""
     ${EndIf}
-  ${ElseIf} "$0" == "BasiliskHTML"
-    ; Since KHCU is set to BasiliskHTML remove BasiliskHTML as the default value
+  ${ElseIf} "$0" == "SerpentHTML"
+    ; Since KHCU is set to SerpentHTML remove SerpentHTML as the default value
     ; from HKCU if HKLM is set to a value other than an empty string.
     ${If} "$1" != ""
       DeleteRegValue HKCU "Software\Classes\${FILE_TYPE}" ""
@@ -641,17 +641,17 @@
   ; Only set the file and protocol handlers if the existing one under HKCR is
   ; for this install location.
 
-  ${IsHandlerForInstallDir} "BasiliskHTML" $R9
+  ${IsHandlerForInstallDir} "SerpentHTML" $R9
   ${If} "$R9" == "true"
-    ; An empty string is used for the 5th param because BasiliskHTML is not a
+    ; An empty string is used for the 5th param because SerpentHTML is not a
     ; protocol handler.
-    ${AddDisabledDDEHandlerValues} "BasiliskHTML" "$2" "$8,1" \
+    ${AddDisabledDDEHandlerValues} "SerpentHTML" "$2" "$8,1" \
                                    "${AppRegName} HTML Document" ""
   ${EndIf}
 
-  ${IsHandlerForInstallDir} "BasiliskURL" $R9
+  ${IsHandlerForInstallDir} "SerpentURL" $R9
   ${If} "$R9" == "true"
-    ${AddDisabledDDEHandlerValues} "BasiliskURL" "$2" "$8,1" \
+    ${AddDisabledDDEHandlerValues} "SerpentURL" "$2" "$8,1" \
                                    "${AppRegName} URL" "true"
   ${EndIf}
 
@@ -699,10 +699,10 @@
     DeleteRegValue HKLM "$0\Capabilities\URLAssociations" "gopher"
   ${EndUnless}
 
-  ; Delete gopher from the user's UrlAssociations if it points to BasiliskURL.
+  ; Delete gopher from the user's UrlAssociations if it points to SerpentURL.
   StrCpy $0 "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\gopher"
   ReadRegStr $2 HKCU "$0\UserChoice" "Progid"
-  ${If} "$2" == "BasiliskURL"
+  ${If} "$2" == "SerpentURL"
     DeleteRegKey HKCU "$0"
   ${EndIf}
 !macroend

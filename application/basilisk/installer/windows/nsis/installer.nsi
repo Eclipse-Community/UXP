@@ -379,17 +379,17 @@ Section "-Application" APP_IDX
   ; it doesn't cause problems always add them.
   ${SetUninstallKeys}
 
-  ; On install always add the BasiliskHTML and BasiliskURL keys.
-  ; An empty string is used for the 5th param because BasiliskHTML is not a
+  ; On install always add the SerpentHTML and SerpentURL keys.
+  ; An empty string is used for the 5th param because SerpentHTML is not a
   ; protocol handler.
   ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8
   StrCpy $2 "$\"$8$\" -osint -url $\"%1$\""
 
-  ; In Win8, the delegate execute handler picks up the value in BasiliskURL and
-  ; BasiliskHTML to launch the desktop browser when it needs to.
-  ${AddDisabledDDEHandlerValues} "BasiliskHTML" "$2" "$8,1" \
+  ; In Win8, the delegate execute handler picks up the value in SerpentURL and
+  ; SerpentHTML to launch the desktop browser when it needs to.
+  ${AddDisabledDDEHandlerValues} "SerpentHTML" "$2" "$8,1" \
                                  "${AppRegName} Document" ""
-  ${AddDisabledDDEHandlerValues} "BasiliskURL" "$2" "$8,1" "${AppRegName} URL" \
+  ${AddDisabledDDEHandlerValues} "SerpentURL" "$2" "$8,1" "${AppRegName} URL" \
                                  "true"
 
   ; For pre win8, the following keys should only be set if we can write to HKLM.

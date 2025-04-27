@@ -227,27 +227,27 @@ Section "Uninstall"
     ${un.SetAppLSPCategories}
   ${EndIf}
 
-  ${un.RegCleanAppHandler} "BasiliskURL"
-  ${un.RegCleanAppHandler} "BasiliskHTML"
+  ${un.RegCleanAppHandler} "SerpentURL"
+  ${un.RegCleanAppHandler} "SerpentHTML"
   ${un.RegCleanProtocolHandler} "ftp"
   ${un.RegCleanProtocolHandler} "http"
   ${un.RegCleanProtocolHandler} "https"
 
   ClearErrors
-  ReadRegStr $R9 HKCR "BasiliskHTML" ""
-  ; Don't clean up the file handlers if the BasiliskHTML key still exists since
+  ReadRegStr $R9 HKCR "SerpentHTML" ""
+  ; Don't clean up the file handlers if the SerpentHTML key still exists since
   ; there should be a second installation that may be the default file handler
   ${If} ${Errors}
-    ${un.RegCleanFileHandler}  ".htm"   "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".html"  "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".shtml" "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".xht"   "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".xhtml" "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".oga"  "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".ogg"  "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".ogv"  "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".pdf"  "BasiliskHTML"
-    ${un.RegCleanFileHandler}  ".webm"  "BasiliskHTML"
+    ${un.RegCleanFileHandler}  ".htm"   "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".html"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".shtml" "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".xht"   "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".xhtml" "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".oga"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".ogg"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".ogv"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".pdf"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".webm"  "SerpentHTML"
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM
