@@ -73,9 +73,6 @@ pref("browser.dictionaries.download.url", "https://@AM_DOMAIN@/dictionaries/");
 // Get More Tools link URL
 pref("browser.getdevtools.url","https://@AM_DOMAIN@/?component=integration&type=external&request=devtools");
 
-// Feedback URL
-pref("browser.feedback.url", "");
-
 // Help button in slow startup dialog
 pref("browser.slowstartup.help.url", "https://support.mozilla.org/en-US/kb/firefox-takes-long-time-start-up");
 
