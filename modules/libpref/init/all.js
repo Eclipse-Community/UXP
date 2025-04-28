@@ -3659,6 +3659,18 @@ pref("ui.osk.debug.keyboardDisplayReason", "");
 //  * 2: auto
 pref("widget.windows.follow_shortcuts_on_file_open", 1);
 
+// Whether to override the Windows version for styling purposes
+//
+// Valid values:
+//  * 0: never
+//  * 5: XP
+//  * 6: Vista
+//  * 7: 7
+//  * 8: 8
+//  * 10: 10
+//  * 11: 11
+pref("widget.native-controls.override-win-version", 0);
+
 # XP_WIN
 #endif
 

@@ -69,6 +69,11 @@
       <preference id="browser.download.saveZoneInformation" name="browser.download.saveZoneInformation" type="int" />
 #endif
 
+      <!-- Theme -->
+      <preference id="widget.native-controls.override-win-version"
+                  name="widget.native-controls.override-win-version"
+                  type="int"/>
+
     </preferences>
     
     <stringbundle id="bundlePreferences" src="chrome://browser/locale/preferences/preferences.properties"/>
@@ -175,6 +180,27 @@
         </menulist>
       </hbox>
 #endif
+    </groupbox>
+
+    <!-- Theme -->
+    <groupbox id="themeGroup">
+      <caption label="&theme.label;"/>
+
+      <hbox align="center">
+        <label value="&ThemeOverride.label;" accesskey="&ThemeOverride.accesskey;"
+               control="browserThemeOverride"/>
+        <menulist id="browserThemeOverride" preference="widget.native-controls.override-win-version">
+          <menupopup>
+            <menuitem label="&browserThemeOverrideNone.label;" value="0" id="browserThemeOverrideNone"/>
+            <menuitem label="&browserThemeOverrideXP.label;" value="5" id="browserThemeOverrideXP"/>
+            <menuitem label="&browserThemeOverrideVista.label;" value="6" id="browserThemeOverrideVista"/>
+            <menuitem label="&browserThemeOverride7.label;" value="7" id="browserThemeOverride7"/>
+            <menuitem label="&browserThemeOverride8.label;" value="8" id="browserThemeOverride8"/>
+            <menuitem label="&browserThemeOverride10.label;" value="10" id="browserThemeOverride10"/>
+            <menuitem label="&browserThemeOverride11.label;" value="11" id="browserThemeOverride11"/>
+          </menupopup>
+        </menulist>
+      </hbox>
     </groupbox>
 
   </prefpane>
