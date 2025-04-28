@@ -13,9 +13,9 @@
   ; start menu tile.  In case there are 2 PaleMoon installations, we only do
   ; this if the application being updated is the default.
   ReadRegStr $0 HKCU "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
-  ${If} $0 == "NewMoonURL"
+  ${If} $0 == "Lun3rURL"
   ${AndIf} $9 != 0 ; We're not running in session 0
-    ReadRegStr $0 HKCU "Software\Classes\NewMoonURL\shell\open\command" ""
+    ReadRegStr $0 HKCU "Software\Classes\Lun3rURL\shell\open\command" ""
     ${GetPathFromString} "$0" $0
     ${GetParent} "$0" $0
     ${If} ${FileExists} "$0"
@@ -282,9 +282,9 @@
   ClearErrors
   EnumRegKey $7 HKCR "${FILE_TYPE}" 0
   ${If} ${Errors}
-    WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}"  "" "NewMoonHTML"
+    WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}"  "" "Lun3rHTML"
   ${EndIf}
-  WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}\OpenWithProgids" "NewMoonHTML" ""
+  WriteRegStr SHCTX "SOFTWARE\Classes\${FILE_TYPE}\OpenWithProgids" "Lun3rHTML" ""
 !macroend
 !define AddAssociationIfNoneExist "!insertmacro AddAssociationIfNoneExist"
 
@@ -296,30 +296,30 @@
   StrCpy $0 "SOFTWARE\Classes"
   StrCpy $2 "$\"$8$\" -osint -url $\"%1$\""
 
-  ; Associate the file handlers with NewMoonHTML
+  ; Associate the file handlers with Lun3rHTML
   ReadRegStr $6 SHCTX "$0\.htm" ""
-  ${If} "$6" != "NewMoonHTML"
-    WriteRegStr SHCTX "$0\.htm"   "" "NewMoonHTML"
+  ${If} "$6" != "Lun3rHTML"
+    WriteRegStr SHCTX "$0\.htm"   "" "Lun3rHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.html" ""
-  ${If} "$6" != "NewMoonHTML"
-    WriteRegStr SHCTX "$0\.html"  "" "NewMoonHTML"
+  ${If} "$6" != "Lun3rHTML"
+    WriteRegStr SHCTX "$0\.html"  "" "Lun3rHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.shtml" ""
-  ${If} "$6" != "NewMoonHTML"
-    WriteRegStr SHCTX "$0\.shtml" "" "NewMoonHTML"
+  ${If} "$6" != "Lun3rHTML"
+    WriteRegStr SHCTX "$0\.shtml" "" "Lun3rHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.xht" ""
-  ${If} "$6" != "NewMoonHTML"
-    WriteRegStr SHCTX "$0\.xht"   "" "NewMoonHTML"
+  ${If} "$6" != "Lun3rHTML"
+    WriteRegStr SHCTX "$0\.xht"   "" "Lun3rHTML"
   ${EndIf}
 
   ReadRegStr $6 SHCTX "$0\.xhtml" ""
-  ${If} "$6" != "NewMoonHTML"
-    WriteRegStr SHCTX "$0\.xhtml" "" "NewMoonHTML"
+  ${If} "$6" != "Lun3rHTML"
+    WriteRegStr SHCTX "$0\.xhtml" "" "Lun3rHTML"
   ${EndIf}
 
   ${AddAssociationIfNoneExist} ".pdf"
@@ -329,12 +329,12 @@
   ${AddAssociationIfNoneExist} ".pdf"
   ${AddAssociationIfNoneExist} ".webm"
 
-  ; An empty string is used for the 5th param because NewMoonHTML is not a
+  ; An empty string is used for the 5th param because Lun3rHTML is not a
   ; protocol handler
-  ${AddDisabledDDEHandlerValues} "NewMoonHTML" "$2" "$8,1" \
+  ${AddDisabledDDEHandlerValues} "Lun3rHTML" "$2" "$8,1" \
                                  "${AppRegName} HTML Document" ""
 
-  ${AddDisabledDDEHandlerValues} "NewMoonURL" "$2" "$8,1" "${AppRegName} URL" \
+  ${AddDisabledDDEHandlerValues} "Lun3rURL" "$2" "$8,1" "${AppRegName} URL" \
                                  "true"
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handlers already have a display name and the additional keys
@@ -404,35 +404,35 @@
   WriteRegStr ${RegKey} "$0\Capabilities" "ApplicationIcon" "$8,0"
   WriteRegStr ${RegKey} "$0\Capabilities" "ApplicationName" "${BrandShortName}"
 
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".htm"   "NewMoonHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".html"  "NewMoonHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".shtml" "NewMoonHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xht"   "NewMoonHTML"
-  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xhtml" "NewMoonHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".htm"   "Lun3rHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".html"  "Lun3rHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".shtml" "Lun3rHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xht"   "Lun3rHTML"
+  WriteRegStr ${RegKey} "$0\Capabilities\FileAssociations" ".xhtml" "Lun3rHTML"
 
   WriteRegStr ${RegKey} "$0\Capabilities\StartMenu" "StartMenuInternet" "$R9"
 
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "ftp"    "NewMoonURL"
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "http"   "NewMoonURL"
-  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "https"  "NewMoonURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "ftp"    "Lun3rURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "http"   "Lun3rURL"
+  WriteRegStr ${RegKey} "$0\Capabilities\URLAssociations" "https"  "Lun3rURL"
 
   ; Vista Registered Application
   WriteRegStr ${RegKey} "Software\RegisteredApplications" "${AppRegName}" "$0\Capabilities"
 !macroend
 !define SetStartMenuInternet "!insertmacro SetStartMenuInternet"
 
-; The IconHandler reference for NewMoonHTML can end up in an inconsistent state
+; The IconHandler reference for Lun3rHTML can end up in an inconsistent state
 ; due to changes not being detected by the IconHandler for side by side
 ; installs (see bug 268512). The symptoms can be either an incorrect icon or no
 ; icon being displayed for files associated with PaleMoon (does not use SHCTX).
 !macro FixShellIconHandler RegKey
   ClearErrors
-  ReadRegStr $1 ${RegKey} "Software\Classes\NewMoonHTML\ShellEx\IconHandler" ""
+  ReadRegStr $1 ${RegKey} "Software\Classes\Lun3rHTML\ShellEx\IconHandler" ""
   ${Unless} ${Errors}
-    ReadRegStr $1 ${RegKey} "Software\Classes\NewMoonHTML\DefaultIcon" ""
+    ReadRegStr $1 ${RegKey} "Software\Classes\Lun3rHTML\DefaultIcon" ""
     ${GetLongPath} "$INSTDIR\${FileMainEXE}" $2
     ${If} "$1" != "$2,1"
-      WriteRegStr ${RegKey} "Software\Classes\NewMoonHTML\DefaultIcon" "" "$2,1"
+      WriteRegStr ${RegKey} "Software\Classes\Lun3rHTML\DefaultIcon" "" "$2,1"
     ${EndIf}
   ${EndUnless}
 !macroend
@@ -567,7 +567,7 @@
 ; HKCU Software\Classes keys when associating handlers. The fix uses the merged
 ; view in HKCR to check for existance of an existing association. This macro
 ; cleans affected installations by removing the HKLM and HKCU value if it is set
-; to NewMoonHTML when there is a value for PersistentHandler or by removing the
+; to Lun3rHTML when there is a value for PersistentHandler or by removing the
 ; HKCU value when the HKLM value has a value other than an empty string.
 !macro FixBadFileAssociation FILE_TYPE
   ; Only delete the default value in case the key has values for OpenWithList,
@@ -576,16 +576,16 @@
   ReadRegStr $1 HKLM "Software\Classes\${FILE_TYPE}" ""
   ReadRegStr $2 HKCR "${FILE_TYPE}\PersistentHandler" ""
   ${If} "$2" != ""
-    ; Since there is a persistent handler remove NewMoonHTML as the default
-    ; value from both HKCU and HKLM if it set to NewMoonHTML.
-    ${If} "$0" == "NewMoonHTML"
+    ; Since there is a persistent handler remove Lun3rHTML as the default
+    ; value from both HKCU and HKLM if it set to Lun3rHTML.
+    ${If} "$0" == "Lun3rHTML"
       DeleteRegValue HKCU "Software\Classes\${FILE_TYPE}" ""
     ${EndIf}
-    ${If} "$1" == "NewMoonHTML"
+    ${If} "$1" == "Lun3rHTML"
       DeleteRegValue HKLM "Software\Classes\${FILE_TYPE}" ""
     ${EndIf}
-  ${ElseIf} "$0" == "NewMoonHTML"
-    ; Since KHCU is set to NewMoonHTML remove NewMoonHTML as the default value
+  ${ElseIf} "$0" == "Lun3rHTML"
+    ; Since KHCU is set to Lun3rHTML remove Lun3rHTML as the default value
     ; from HKCU if HKLM is set to a value other than an empty string.
     ${If} "$1" != ""
       DeleteRegValue HKCU "Software\Classes\${FILE_TYPE}" ""
@@ -641,17 +641,17 @@
   ; Only set the file and protocol handlers if the existing one under HKCR is
   ; for this install location.
 
-  ${IsHandlerForInstallDir} "NewMoonHTML" $R9
+  ${IsHandlerForInstallDir} "Lun3rHTML" $R9
   ${If} "$R9" == "true"
-    ; An empty string is used for the 5th param because NewMoonHTML is not a
+    ; An empty string is used for the 5th param because Lun3rHTML is not a
     ; protocol handler.
-    ${AddDisabledDDEHandlerValues} "NewMoonHTML" "$2" "$8,1" \
+    ${AddDisabledDDEHandlerValues} "Lun3rHTML" "$2" "$8,1" \
                                    "${AppRegName} HTML Document" ""
   ${EndIf}
 
-  ${IsHandlerForInstallDir} "NewMoonURL" $R9
+  ${IsHandlerForInstallDir} "Lun3rURL" $R9
   ${If} "$R9" == "true"
-    ${AddDisabledDDEHandlerValues} "NewMoonURL" "$2" "$8,1" \
+    ${AddDisabledDDEHandlerValues} "Lun3rURL" "$2" "$8,1" \
                                    "${AppRegName} URL" "true"
   ${EndIf}
 
@@ -699,10 +699,10 @@
     DeleteRegValue HKLM "$0\Capabilities\URLAssociations" "gopher"
   ${EndUnless}
 
-  ; Delete gopher from the user's UrlAssociations if it points to NewMoonURL.
+  ; Delete gopher from the user's UrlAssociations if it points to Lun3rURL.
   StrCpy $0 "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\gopher"
   ReadRegStr $2 HKCU "$0\UserChoice" "Progid"
-  ${If} "$2" == "NewMoonURL"
+  ${If} "$2" == "Lun3rURL"
     DeleteRegKey HKCU "$0"
   ${EndIf}
 !macroend

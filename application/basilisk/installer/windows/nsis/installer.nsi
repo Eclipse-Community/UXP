@@ -379,17 +379,17 @@ Section "-Application" APP_IDX
   ; it doesn't cause problems always add them.
   ${SetUninstallKeys}
 
-  ; On install always add the SerpentHTML and SerpentURL keys.
-  ; An empty string is used for the 5th param because SerpentHTML is not a
+  ; On install always add the HydraHTML and HydraURL keys.
+  ; An empty string is used for the 5th param because HydraHTML is not a
   ; protocol handler.
   ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8
   StrCpy $2 "$\"$8$\" -osint -url $\"%1$\""
 
-  ; In Win8, the delegate execute handler picks up the value in SerpentURL and
-  ; SerpentHTML to launch the desktop browser when it needs to.
-  ${AddDisabledDDEHandlerValues} "SerpentHTML" "$2" "$8,1" \
+  ; In Win8, the delegate execute handler picks up the value in HydraURL and
+  ; HydraHTML to launch the desktop browser when it needs to.
+  ${AddDisabledDDEHandlerValues} "HydraHTML" "$2" "$8,1" \
                                  "${AppRegName} Document" ""
-  ${AddDisabledDDEHandlerValues} "SerpentURL" "$2" "$8,1" "${AppRegName} URL" \
+  ${AddDisabledDDEHandlerValues} "HydraURL" "$2" "$8,1" "${AppRegName} URL" \
                                  "true"
 
   ; For pre win8, the following keys should only be set if we can write to HKLM.

@@ -6,18 +6,26 @@
 # Application Basename and Vendor
 # MOZ_APP_BASENAME and MOZ_APP_VENDOR must not have spaces.
 # These values where appropriate are hardcoded in application.ini
-# to "New Moon" and "Open Source Contributors" respectively for
-# Pale Moon
-MOZ_APP_BASENAME=Newmoon 
-MOZ_APP_VENDOR=OpenSourceContributors
-MOZ_APP_UA_NAME=PaleMoon
+# to "Lun3r" and "Eclipse Community" respectively for
+# Lun3r
+MOZ_APP_BASENAME=Lun3r 
+MOZ_APP_VENDOR=Eclipse Community
+MOZ_APP_UA_NAME=Lun3r
 
-# Application Version
-# MOZ_APP_VERSION is read from ./config/version.txt
-# MOZ_APP_VERSION_DISPLAY is not used in Pale Moon so set it
-# to MOZ_APP_VERSION
-MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
-MOZ_APP_VERSION_DISPLAY=$MOZ_APP_VERSION
+# For Lun3r we want to use 33.7.YYYY.MM.DD as MOZ_APP_VERSION in release
+# builds so add-on developers have something to target while maintaining
+# Pale Moon compatiblity.
+# To enable add "export LUN3R_VERSION=1" to the .mozconfig file.
+# However, this will cause a full rebuild at 00:00 UTC every day so
+# don't export the variable if you are in development or don't care.
+# When not exported we fall back the value in the version*.txt file.
+if test -n "$LUN3R_VERSION" ; then
+    MOZ_APP_VERSION=33.7.`date --utc '+%Y.%m.%d'`
+    MOZ_APP_VERSION_DISPLAY=`date --utc '+%Y.%m.%d'`
+else
+    MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
+    MOZ_APP_VERSION_DISPLAY=$MOZ_APP_VERSION
+fi
 
 # Application ID
 # This is a unique identifier used for the application

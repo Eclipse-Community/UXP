@@ -379,17 +379,17 @@ Section "-Application" APP_IDX
   ; it doesn't cause problems always add them.
   ${SetUninstallKeys}
 
-  ; On install always add the NewMoonHTML and NewMoonURL keys.
-  ; An empty string is used for the 5th param because NewMoonHTML is not a
+  ; On install always add the Lun3rHTML and Lun3rURL keys.
+  ; An empty string is used for the 5th param because Lun3rHTML is not a
   ; protocol handler.
   ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8
   StrCpy $2 "$\"$8$\" -osint -url $\"%1$\""
 
-  ; In Win8, the delegate execute handler picks up the value in NewMoonURL and
-  ; NewMoonHTML to launch the desktop browser when it needs to.
-  ${AddDisabledDDEHandlerValues} "NewMoonHTML" "$2" "$8,1" \
+  ; In Win8, the delegate execute handler picks up the value in Lun3rURL and
+  ; Lun3rHTML to launch the desktop browser when it needs to.
+  ${AddDisabledDDEHandlerValues} "Lun3rHTML" "$2" "$8,1" \
                                  "${AppRegName} Document" ""
-  ${AddDisabledDDEHandlerValues} "NewMoonURL" "$2" "$8,1" "${AppRegName} URL" \
+  ${AddDisabledDDEHandlerValues} "Lun3rURL" "$2" "$8,1" "${AppRegName} URL" \
                                  "true"
 
   ; For pre win8, the following keys should only be set if we can write to HKLM.

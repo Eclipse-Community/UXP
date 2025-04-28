@@ -227,27 +227,27 @@ Section "Uninstall"
     ${un.SetAppLSPCategories}
   ${EndIf}
 
-  ${un.RegCleanAppHandler} "SerpentURL"
-  ${un.RegCleanAppHandler} "SerpentHTML"
+  ${un.RegCleanAppHandler} "HydraURL"
+  ${un.RegCleanAppHandler} "HydraHTML"
   ${un.RegCleanProtocolHandler} "ftp"
   ${un.RegCleanProtocolHandler} "http"
   ${un.RegCleanProtocolHandler} "https"
 
   ClearErrors
-  ReadRegStr $R9 HKCR "SerpentHTML" ""
-  ; Don't clean up the file handlers if the SerpentHTML key still exists since
+  ReadRegStr $R9 HKCR "HydraHTML" ""
+  ; Don't clean up the file handlers if the HydraHTML key still exists since
   ; there should be a second installation that may be the default file handler
   ${If} ${Errors}
-    ${un.RegCleanFileHandler}  ".htm"   "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".html"  "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".shtml" "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".xht"   "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".xhtml" "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".oga"  "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".ogg"  "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".ogv"  "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".pdf"  "SerpentHTML"
-    ${un.RegCleanFileHandler}  ".webm"  "SerpentHTML"
+    ${un.RegCleanFileHandler}  ".htm"   "HydraHTML"
+    ${un.RegCleanFileHandler}  ".html"  "HydraHTML"
+    ${un.RegCleanFileHandler}  ".shtml" "HydraHTML"
+    ${un.RegCleanFileHandler}  ".xht"   "HydraHTML"
+    ${un.RegCleanFileHandler}  ".xhtml" "HydraHTML"
+    ${un.RegCleanFileHandler}  ".oga"  "HydraHTML"
+    ${un.RegCleanFileHandler}  ".ogg"  "HydraHTML"
+    ${un.RegCleanFileHandler}  ".ogv"  "HydraHTML"
+    ${un.RegCleanFileHandler}  ".pdf"  "HydraHTML"
+    ${un.RegCleanFileHandler}  ".webm"  "HydraHTML"
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM

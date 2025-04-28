@@ -193,26 +193,52 @@
 }
 
 %ifdef MOZ_OFFICIAL_BRANDING
-#appmenu-button {
-  background-image: linear-gradient(rgb(82,182,247), rgb(10,98,215) 95%);
-  border-color: rgba(6,42,83,.9);
-  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset,
-              0 0 0 1px rgba(255,255,255,.25) inset;
+@supports not -moz-bool-pref("browser.lun3r.brand") {
+  #appmenu-button {
+    background-image: linear-gradient(rgb(82,182,247), rgb(10,98,215) 95%);
+    border-color: rgba(6,42,83,.9);
+    box-shadow: 0 1px 0 rgba(255,255,255,.25) inset,
+                0 0 0 1px rgba(255,255,255,.25) inset;
+  }
+  #appmenu-button:hover:not(:active):not([open]) {
+    background-image: radial-gradient(farthest-side at bottom, rgba(89,240,252,.5) 10%, rgba(89,240,252,0) 70%),
+                      radial-gradient(farthest-side at bottom, rgb(60,68,236), rgba(172,229,255,0)),
+                      linear-gradient(rgb(69,170,246), rgb(30,40,209) 95%);
+    border-color: rgba(6,42,83,.9);
+    box-shadow: 0 1px 0 rgba(255,255,255,.1) inset,
+                0 0 2px 1px rgba(169,234,250,.7) inset,
+                0 -1px 0 rgba(169,234,250,.5) inset;
+  }
+  #appmenu-button:hover:active,
+  #appmenu-button[open] {
+    background-image: linear-gradient(rgb(69,170,246), rgb(0,74,209) 95%);
+    box-shadow: 0 2px 3px rgba(0,0,0,.4) inset,
+                0 1px 1px rgba(0,0,0,.2) inset;
+  }
 }
-#appmenu-button:hover:not(:active):not([open]) {
-  background-image: radial-gradient(farthest-side at bottom, rgba(89,240,252,.5) 10%, rgba(89,240,252,0) 70%),
-                    radial-gradient(farthest-side at bottom, rgb(60,68,236), rgba(172,229,255,0)),
-                    linear-gradient(rgb(69,170,246), rgb(30,40,209) 95%);
-  border-color: rgba(6,42,83,.9);
-  box-shadow: 0 1px 0 rgba(255,255,255,.1) inset,
-              0 0 2px 1px rgba(169,234,250,.7) inset,
-              0 -1px 0 rgba(169,234,250,.5) inset;
-}
-#appmenu-button:hover:active,
-#appmenu-button[open] {
-  background-image: linear-gradient(rgb(69,170,246), rgb(0,74,209) 95%);
-  box-shadow: 0 2px 3px rgba(0,0,0,.4) inset,
-              0 1px 1px rgba(0,0,0,.2) inset;
+
+@supports -moz-bool-pref("browser.lun3r.brand") {
+  #appmenu-button {
+    background-image: linear-gradient(rgb(167,93,247), rgb(153,11,229) 95%);
+    border-color: rgba(61,6,84,.9);
+    box-shadow: 0 1px 0 rgba(255,255,255,.25) inset,
+                0 0 0 1px rgba(255,255,255,.25) inset;
+  }
+  #appmenu-button:hover:not(:active):not([open]) {
+    background-image: radial-gradient(farthest-side at bottom, rgba(240,193,255,.5) 10%, rgba(240,193,255,0) 70%),
+                      radial-gradient(farthest-side at bottom, rgb(192,81,247), rgba(236,172,255,0)),
+                      linear-gradient(rgb(144,20,207), rgb(95,0,158) 95%);
+    border-color: rgba(61,6,84,.9);
+    box-shadow: 0 1px 0 rgba(255,255,255,.1) inset,
+                0 0 2px 1px rgba(199,170,250,.7) inset,
+                0 -1px 0 rgba(199,170,250,.5) inset;
+  }
+  #appmenu-button:hover:active,
+  #appmenu-button[open] {
+    background-image: linear-gradient(rgb(153,55,245), rgb(147,0,200) 95%);
+    box-shadow: 0 2px 3px rgba(0,0,0,.4) inset,
+                0 1px 1px rgba(0,0,0,.2) inset;
+  }
 }
 %else
 %if MOZ_UPDATE_CHANNEL == aurora
