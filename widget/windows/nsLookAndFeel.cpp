@@ -11,6 +11,7 @@
 #include "nsUXThemeConstants.h"
 #include "gfxFont.h"
 #include "WinUtils.h"
+#include "mozilla/Preferences.h"
 #include "mozilla/WindowsVersion.h"
 #include "gfxFontConstants.h"
 
@@ -27,15 +28,18 @@ nsLookAndFeel::GetOperatingSystemVersion()
     return version;
   }
 
-  if (IsWin11OrLater()) {
+  int overridePref = Preferences::GetInt("widget.native-controls.override-win-version", 1);
+  bool doesOverride = overridePref > 0;
+
+  if ((!doesOverride && IsWin11OrLater()) || overridePref == 11) {
     version = eOperatingSystemVersion_Windows11;
-  } else if (IsWin10OrLater()) {
+  } else if ((!doesOverride && IsWin10OrLater()) || overridePref == 10) {
     version = eOperatingSystemVersion_Windows10;
-  } else if (IsWin8OrLater()) {
+  } else if ((!doesOverride && IsWin8OrLater()) || overridePref == 8) {
     version = eOperatingSystemVersion_Windows8;
-  } else if (IsWin7OrLater()) {
+  } else if ((!doesOverride && IsWin7OrLater()) || overridePref == 7) {
     version = eOperatingSystemVersion_Windows7;
-  } else if (IsVistaOrLater()) {
+  } else if ((!doesOverride && IsVistaOrLater()) || overridePref == 6) {
     version = eOperatingSystemVersion_WindowsVista;
   } else {
     version = eOperatingSystemVersion_WindowsXP;
