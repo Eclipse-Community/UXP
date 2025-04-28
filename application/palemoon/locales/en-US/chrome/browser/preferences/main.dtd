@@ -42,3 +42,15 @@
 <!ENTITY zoneInfo.always      "Always">
 <!ENTITY zoneInfo.system      "Use system setting">
 
+<!ENTITY theme.label                      "Theme Override">
+
+<!ENTITY ThemeOverride.label              "Override Windows version theme (requires restart):">
+<!ENTITY ThemeOverride.accesskey          "t">
+<!ENTITY browserThemeOverrideNone.label   "Current OS version">
+<!ENTITY browserThemeOverrideXP.label     "Windows XP">
+<!ENTITY browserThemeOverrideVista.label  "Windows Vista">
+<!ENTITY browserThemeOverride7.label      "Windows 7">
+<!ENTITY browserThemeOverride8.label      "Windows 8">
+<!ENTITY browserThemeOverride10.label     "Windows 10">
+<!ENTITY browserThemeOverride11.label     "Windows 11">
+
