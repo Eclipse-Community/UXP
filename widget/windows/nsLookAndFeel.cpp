@@ -11,6 +11,7 @@
 #include "nsUXThemeConstants.h"
 #include "gfxFont.h"
 #include "WinUtils.h"
+#include "mozilla/Preferences.h"
 #include "mozilla/WindowsVersion.h"
 #include "gfxFontConstants.h"
 
@@ -27,16 +28,17 @@ nsLookAndFeel::GetOperatingSystemVersion()
     return version;
   }
 
-  if (IsWin11OrLater()) {
+  int overridePref = Preferences::GetInt("widget.override-win-version", 0);
+  bool doesOverride = overridePref > 0;
+
+  if ((!doesOverride && IsWin11OrLater()) || overridePref == 11) {
     version = eOperatingSystemVersion_Windows11;
-  } else if (IsWin10OrLater()) {
+  } else if ((!doesOverride && IsWin10OrLater()) || overridePref == 10) {
     version = eOperatingSystemVersion_Windows10;
-  } else if (IsWin8OrLater()) {
+  } else if ((!doesOverride && IsWin8OrLater()) || overridePref == 8) {
     version = eOperatingSystemVersion_Windows8;
-  } else if (IsWin7OrLater()) {
+  } else if ((!doesOverride && IsVistaOrLater()) || overridePref == 7) {
     version = eOperatingSystemVersion_Windows7;
-  } else if (IsVistaOrLater()) {
-    version = eOperatingSystemVersion_WindowsVista;
   } else {
     version = eOperatingSystemVersion_WindowsXP;
   }
@@ -451,8 +453,14 @@ nsLookAndFeel::GetIntImpl(IntID aID, int32_t &aResult)
         }
         break;
     case eIntID_WindowsGlass:
-        // Aero Glass is only available prior to Windows 8 when DWM is used.
-        aResult = (nsUXThemeData::CheckForCompositor() && !IsWin8OrLater());
+        {
+          int overrideWinVer =
+              Preferences::GetInt("widget.override-win-version", 0);
+          bool isWin8OrLater =
+              (overrideWinVer == 0 && IsWin8OrLater()) || overrideWinVer >= 8;
+          // Aero Glass is only available prior to Windows 8 when DWM is used.
+          aResult = (nsUXThemeData::CheckForCompositor() && !isWin8OrLater);
+        }
         break;
     case eIntID_AlertNotificationOrigin:
         aResult = 0;

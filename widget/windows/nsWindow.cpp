@@ -3979,6 +3979,11 @@ nsWindow::OnDefaultButtonLoaded(const LayoutDeviceIntRect& aButtonRect)
 void
 nsWindow::UpdateThemeGeometries(const nsTArray<ThemeGeometry>& aThemeGeometries)
 {
+  int overrideWinVer =
+      Preferences::GetInt("widget.override-win-version", 0);
+  bool isWin10OrLater =
+      (overrideWinVer == 0 && IsWin10OrLater()) || overrideWinVer >= 10;
+
   RefPtr<LayerManager> layerManager = GetLayerManager();
   if (!layerManager) {
     return;
@@ -3994,7 +3999,7 @@ nsWindow::UpdateThemeGeometries(const nsTArray<ThemeGeometry>& aThemeGeometries)
   }
 
   // On Win10, force show the top border:
-  if (IsWin10OrLater() && mCustomNonClient && mSizeMode == nsSizeMode_Normal) {
+  if (isWin10OrLater && mCustomNonClient && mSizeMode == nsSizeMode_Normal) {
     RECT rect;
     ::GetWindowRect(mWnd, &rect);
     // We want 1 pixel of border for every whole 100% of scaling
@@ -4002,7 +4007,7 @@ nsWindow::UpdateThemeGeometries(const nsTArray<ThemeGeometry>& aThemeGeometries)
     clearRegion.Or(clearRegion, gfx::IntRect::Truncate(0, 0, rect.right - rect.left, borderSize));
   }
 
-  if (!IsWin10OrLater()) {
+  if (!isWin10OrLater) {
     for (size_t i = 0; i < aThemeGeometries.Length(); i++) {
       if (aThemeGeometries[i].mType == nsNativeThemeWin::eThemeGeometryTypeWindowButtons) {
         LayoutDeviceIntRect bounds = aThemeGeometries[i].mRect;
@@ -4960,6 +4965,12 @@ bool
 nsWindow::ProcessMessage(UINT msg, WPARAM& wParam, LPARAM& lParam,
                          LRESULT *aRetValue)
 {
+
+  int winVerOverride =
+      Preferences::GetInt("widget.override-win-version", 0);
+  bool isWin10 =
+      (winVerOverride == 0 && IsWin10OrLater()) || winVerOverride >= 10;
+
 #if defined(EVENT_DEBUG_OUTPUT)
   // First param shows all events, second param indicates whether
   // to show mouse move events. See nsWindowDbg for details.
@@ -4980,7 +4991,7 @@ nsWindow::ProcessMessage(UINT msg, WPARAM& wParam, LPARAM& lParam,
       nsUXThemeData::CheckForCompositor() &&
       /* We don't do this for win10 glass with a custom titlebar,
        * in order to avoid the caption buttons breaking. */
-      !(IsWin10OrLater() && HasGlass()) &&
+      !(isWin10 && HasGlass()) &&
       WinUtils::dwmDwmDefWindowProcPtr(mWnd, msg, wParam, lParam, &dwmHitResult)) {
     *aRetValue = dwmHitResult;
     return true;

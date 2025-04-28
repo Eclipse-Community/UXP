@@ -157,12 +157,24 @@ nsUXThemeData::UpdateTitlebarInfo(HWND aWnd)
 
   if (!sTitlebarInfoPopulatedAero && nsUXThemeData::CheckForCompositor()) {
     RECT captionButtons;
+    int overrideCaptionButtonsWidth = Preferences::GetInt("widget.override-aero-caption-buttons-mask-width", 0);
+    int overrideCaptionButtonsHeight = Preferences::GetInt("widget.override-aero-caption-buttons-mask-height", 0);
+
     if (SUCCEEDED(WinUtils::dwmGetWindowAttributePtr(aWnd,
                                                      DWMWA_CAPTION_BUTTON_BOUNDS,
                                                      &captionButtons,
                                                      sizeof(captionButtons)))) {
       sCommandButtons[CMDBUTTONIDX_BUTTONBOX].cx = captionButtons.right - captionButtons.left - 3;
       sCommandButtons[CMDBUTTONIDX_BUTTONBOX].cy = (captionButtons.bottom - captionButtons.top) - 1;
+
+      if (overrideCaptionButtonsWidth > 0) {
+        sCommandButtons[CMDBUTTONIDX_BUTTONBOX].cx = overrideCaptionButtonsWidth;
+      }
+
+      if (overrideCaptionButtonsHeight > 0) {
+        sCommandButtons[CMDBUTTONIDX_BUTTONBOX].cy = overrideCaptionButtonsHeight;
+      }
+
       sTitlebarInfoPopulatedAero = true;
     }
   }
@@ -212,12 +224,12 @@ nsUXThemeData::UpdateTitlebarInfo(HWND aWnd)
   DestroyWindow(hWnd);
 
   // Only set if we have valid data for all three buttons we use.
-  if ((info.rgrect[2].right - info.rgrect[2].left) == 0 ||
-      (info.rgrect[3].right - info.rgrect[3].left) == 0 ||
-      (info.rgrect[5].right - info.rgrect[5].left) == 0) {
-    NS_WARNING("WM_GETTITLEBARINFOEX query failed to find usable metrics.");
-    return;
-  }
+  //if ((info.rgrect[2].right - info.rgrect[2].left) == 0 ||
+  //    (info.rgrect[3].right - info.rgrect[3].left) == 0 ||
+  //    (info.rgrect[5].right - info.rgrect[5].left) == 0) {
+  //  NS_WARNING("WM_GETTITLEBARINFOEX query failed to find usable metrics.");
+  //  return;
+  //}
   // minimize
   sCommandButtons[0].cx = info.rgrect[2].right - info.rgrect[2].left;
   sCommandButtons[0].cy = info.rgrect[2].bottom - info.rgrect[2].top;

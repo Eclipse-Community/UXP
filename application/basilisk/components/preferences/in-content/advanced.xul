@@ -47,6 +47,18 @@
               name="layout.spellcheckDefault"
               type="int"/>
 
+  <!-- Theme -->
+  <preference id="widget.override-win-version"
+              name="widget.override-win-version"
+              type="int"/>
+
+  <preference id="widget.override-aero-caption-buttons-mask-width"
+              name="widget.override-aero-caption-buttons-mask-width"
+              type="int"/>
+  <preference id="widget.override-aero-caption-buttons-mask-height"
+              name="widget.override-aero-caption-buttons-mask-height"
+              type="int"/>
+
   <!-- Network tab -->
   <preference id="browser.cache.disk.capacity"
               name="browser.cache.disk.capacity"
@@ -177,6 +189,82 @@
                   onsyncfrompreference="return gAdvancedPane.readCheckSpelling();"
                   onsynctopreference="return gAdvancedPane.writeCheckSpelling();"
                   preference="layout.spellcheckDefault"/>
+      </groupbox>
+
+      <!-- Theme -->
+      <groupbox id="themeGroup"
+                data-category="paneGeneral">
+        <caption><label>&theme.label;</label></caption>
+        <label>&browserCaptionDesc.label2;</label>
+
+        <html:table id="themeTable">
+          <html:tr>
+            <html:td class="label-cell">
+              <label accesskey="&ThemeOverride.accesskey;"
+                     control="browserThemeOverride">&ThemeOverride.label;</label>
+            </html:td>
+            <html:td class="content-cell">
+              <menulist id="browserThemeOverride"
+                        class="content-cell-item"
+                        preference="widget.override-win-version">
+                <menupopup>
+                <menuitem label="&browserThemeOverrideNone.label;"
+                          value="0"
+                          id="browserThemeOverrideNone"/>
+                <menuitem label="&browserThemeOverrideXP.label;"
+                          value="5"
+                          id="browserThemeOverrideXP"/>
+                <menuitem label="&browserThemeOverride7.label;"
+                          value="7"
+                          id="browserThemeOverride7"/>
+                <menuitem label="&browserThemeOverride8.label;"
+                          value="8"
+                          id="browserThemeOverride8"/>
+                <menuitem label="&browserThemeOverride10.label;"
+                          value="10"
+                          id="browserThemeOverride10"/>
+                <menuitem label="&browserThemeOverride11.label;"
+                          value="11"
+                          id="browserThemeOverride11"/>
+                </menupopup>
+              </menulist>
+            </html:td>
+          </html:tr>
+
+          <html:tr>
+            <html:div>
+              &browserCaptionDesc.label;
+            </html:div>
+          </html:tr>
+
+          <html:tr>
+            <html:td class="label-cell">
+              <html:label for="browserCaptionWidthType">
+                &browserCaptionWidth.label;
+              </html:label>
+            </html:td>
+            <html:td class="content-cell">
+              <textbox id="browserCaptionWidthType"
+                          type="number"
+                          class="option"
+                          preference="widget.override-aero-caption-buttons-mask-width"/>
+            </html:td>
+          </html:tr>
+
+          <html:tr>
+            <html:td class="label-cell">
+              <html:label for="browserCaptionHeightType">
+                &browserCaptionHeight.label;
+              </html:label>
+            </html:td>
+            <html:td class="content-cell">
+              <textbox id="browserCaptionHeightType"
+                          type="number"
+                          class="option"
+                          preference="widget.override-aero-caption-buttons-mask-height"/>
+            </html:td>
+          </html:tr>
+        </html:table>
       </groupbox>
     </tabpanel>
 

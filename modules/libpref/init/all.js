@@ -3670,6 +3670,21 @@ pref("ui.osk.debug.keyboardDisplayReason", "");
 //  * 2: auto
 pref("widget.windows.follow_shortcuts_on_file_open", 1);
 
+// Whether to override the Windows version for styling purposes
+//
+// Valid values:
+//  * 0: never
+//  * 5: XP
+//  * 7: Vista/7
+//  * 8: 8
+//  * 10: 10
+//  * 11: 11
+pref("widget.override-win-version", 0);
+
+// The below are for Windows 10 where the caption mask is incorrect for Win 7 aero.
+pref("widget.override-aero-caption-buttons-mask-width", 0);
+pref("widget.override-aero-caption-buttons-mask-height", 0);
+
 # XP_WIN
 #endif
 

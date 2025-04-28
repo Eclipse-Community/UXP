@@ -28,6 +28,22 @@
 <!ENTITY checkSpelling.label             "Check my spelling as I type">
 <!ENTITY checkSpelling.accesskey         "t">
 
+<!ENTITY theme.label                      "Theme Override">
+<!ENTITY browserCaptionDesc.label2        "(Browser restart is required for changes to take effect)">
+
+<!ENTITY ThemeOverride.label              "Override Windows version theme:">
+<!ENTITY ThemeOverride.accesskey          "t">
+<!ENTITY browserThemeOverrideNone.label   "Current OS version">
+<!ENTITY browserThemeOverrideXP.label     "Windows XP">
+<!ENTITY browserThemeOverride7.label      "Windows Vista/7">
+<!ENTITY browserThemeOverride8.label      "Windows 8">
+<!ENTITY browserThemeOverride10.label     "Windows 10">
+<!ENTITY browserThemeOverride11.label     "Windows 11">
+
+<!ENTITY browserCaptionWidth.label        "Custom caption button Aero fog mask width">
+<!ENTITY browserCaptionHeight.label       "Custom caption button Aero fog mask height">
+<!ENTITY browserCaptionDesc.label         "(For themes that use custom sized caption buttons that differ from the stock OS)">
+
 <!ENTITY dataChoicesTab.label            "Data Choices">
 
 <!ENTITY healthReportDesc.label          "Helps you understand your browser performance and shares data with &vendorShortName; about your browser health">
