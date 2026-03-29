@@ -1186,6 +1186,12 @@ GfxInfo::GetFeatureStatusImpl(int32_t aFeature,
         !adapterVendorID.Equals(GfxDriverInfo::GetDeviceVendor(VendorAMD), nsCaseInsensitiveStringComparator()) &&
         !adapterVendorID.Equals(GfxDriverInfo::GetDeviceVendor(VendorATI), nsCaseInsensitiveStringComparator()) &&
         !adapterVendorID.Equals(GfxDriverInfo::GetDeviceVendor(VendorMicrosoft), nsCaseInsensitiveStringComparator()) &&
+        // VMware (PCI vendor 0x15ad), Hyper-V synthetic adapter vendor
+        // ids, and Parallels (PCI vendor 0x1ab8) should be treated as
+        // known virtualized vendors.
+        !adapterVendorID.LowerCaseEqualsLiteral("0x15ad") &&
+        !adapterVendorID.LowerCaseEqualsLiteral("0x1414") &&
+        !adapterVendorID.LowerCaseEqualsLiteral("0x1ab8") &&
         // FIXME - these special hex values are currently used in xpcshell tests introduced by
         // bug 625160 patch 8/8. Maybe these tests need to be adjusted now that we're only whitelisting
         // intel/ati/nvidia. Also allow common virtual GPU vendor IDs (VirtualBox, VMware, QEMU/virtio, Parallels).
@@ -1211,6 +1217,13 @@ GfxInfo::GetFeatureStatusImpl(int32_t aFeature,
       return NS_OK;
     }
 
+    // Explicitly block VirtualBox virtual GPU devices due to buggy drivers and lack of hardware acceleration support.
+    if (adapterVendorID.LowerCaseEqualsLiteral("0x80ee")) {
+        aFailureId = "FEATURE_FAILURE_VIRTUALBOX";
+        *aStatus = FEATURE_BLOCKED_DEVICE;
+        return NS_OK;
+    }
+	
     // special-case the WinXP test slaves: they have out-of-date drivers, but we still want to
     // whitelist them, actually we do know that this combination of device and driver version
     // works well.
