@@ -3,10 +3,10 @@
 <assemblyIdentity
         version="1.0.0.0"
         processorArchitecture="*"
-        name="Basilisk"
+        name="Serpent"
         type="win32"
 />
-<description>Firefox</description>
+<description>Serpent</description>
 <dependency>
         <dependentAssembly>
                 <assemblyIdentity
