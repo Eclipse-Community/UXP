@@ -227,27 +227,27 @@ Section "Uninstall"
     ${un.SetAppLSPCategories}
   ${EndIf}
 
-  ${un.RegCleanAppHandler} "PaleMoonURL"
-  ${un.RegCleanAppHandler} "PaleMoonHTML"
+  ${un.RegCleanAppHandler} "NewMoonURL"
+  ${un.RegCleanAppHandler} "NewMoonHTML"
   ${un.RegCleanProtocolHandler} "ftp"
   ${un.RegCleanProtocolHandler} "http"
   ${un.RegCleanProtocolHandler} "https"
 
   ClearErrors
-  ReadRegStr $R9 HKCR "PaleMoonHTML" ""
-  ; Don't clean up the file handlers if the PaleMoonHTML key still exists since
+  ReadRegStr $R9 HKCR "NewMoonHTML" ""
+  ; Don't clean up the file handlers if the NewMoonHTML key still exists since
   ; there should be a second installation that may be the default file handler
   ${If} ${Errors}
-    ${un.RegCleanFileHandler}  ".htm"   "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".html"  "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".shtml" "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".xht"   "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".xhtml" "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".oga"  "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".ogg"  "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".ogv"  "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".pdf"  "PaleMoonHTML"
-    ${un.RegCleanFileHandler}  ".webm"  "PaleMoonHTML"
+    ${un.RegCleanFileHandler}  ".htm"   "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".html"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".shtml" "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".xht"   "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".xhtml" "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".oga"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".ogg"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".ogv"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".pdf"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".webm"  "NewMoonHTML"
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM

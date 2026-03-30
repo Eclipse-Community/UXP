@@ -6,10 +6,10 @@
 # Application Basename and Vendor
 # MOZ_APP_BASENAME and MOZ_APP_VENDOR must not have spaces.
 # These values where appropriate are hardcoded in application.ini
-# to "Pale Moon" and "Moonchild Productions" respectively for
+# to "New Moon" and "Open Source Contributors" respectively for
 # Pale Moon
-MOZ_APP_BASENAME=Palemoon 
-MOZ_APP_VENDOR=Moonchild
+MOZ_APP_BASENAME=Newmoon 
+MOZ_APP_VENDOR=OpenSourceContributors
 MOZ_APP_UA_NAME=PaleMoon
 
 # Application Version

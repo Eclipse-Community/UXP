@@ -1,11 +1,5 @@
 // ===| General |==============================================================
 
-pref("startup.homepage_welcome_url","http://www.palemoon.org/firstrun.shtml");
-
-pref("app.vendorURL", "http://www.palemoon.org/");
-
-
-// User Interface
 pref("browser.identity.ssl_domain_display", 1); //show domain verified SSL (blue)
 
 // ============================================================================
