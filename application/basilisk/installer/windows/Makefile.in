@@ -5,7 +5,16 @@
 include $(topsrcdir)/toolkit/mozapps/installer/package-name.mk
 
 CONFIG_DIR = instgen
+
+ifdef MOZ_OFFICIAL_BRANDING
+BRANDED_SFX = 1
+endif
+
+ifdef BRANDED_SFX
+SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/hydra/7zSD.sfx
+else
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/serpent/7zSD.sfx
+endif
 
 INSTALLER_FILES = \
 	app.tag \

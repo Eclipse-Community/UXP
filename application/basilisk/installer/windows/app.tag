@@ -1,4 +1,4 @@
 ;!@Install@!UTF-8!
-Title="Serpent"
+Title="Hydra"
 RunProgram="setup.exe"
 ;!@InstallEnd@!

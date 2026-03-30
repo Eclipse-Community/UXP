@@ -6,11 +6,10 @@
 # Application Basename and Vendor
 # MOZ_APP_BASENAME and MOZ_APP_VENDOR must not have spaces.
 # These values where appropriate are hardcoded in application.ini
-# to "New Moon" and "Open Source Contributors" respectively for
-# Pale Moon
-MOZ_APP_BASENAME=Newmoon 
-MOZ_APP_VENDOR=OpenSourceContributors
-MOZ_APP_UA_NAME=PaleMoon
+# to "Lun3r" and "Eclipse Community" respectively for Lun3r.
+MOZ_APP_BASENAME=Lun3r 
+MOZ_APP_VENDOR="Eclipse Community"
+MOZ_APP_UA_NAME=Lun3r
 
 # Application Version
 # MOZ_APP_VERSION is read from ./config/version.txt

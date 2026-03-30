@@ -1,3 +1,48 @@
+# Eclipse Lun3r and Eclipse Hydra web browsers
+
+[Official Eclipse Community Discord Server](https://discord.gg/ecx)
+
+Eclipse Lun3r is a fork of roytam1's New Moon which is a fork Pale Moon made for Windows XP.
+
+![big1](https://github.com/user-attachments/assets/3e3d2bff-d97c-4dc4-a471-913ddcf983e5)
+
+Eclipse Hydra is a fork of roytam1's Serpent which is a fork of Basilisk made for Windows XP.
+
+![big1](https://github.com/user-attachments/assets/0bd7d7df-0d9a-46b3-9273-2ba7cae5fbdb)
+
+Local (GitHub) Downloads: [![Github All Releases](https://img.shields.io/github/downloads/Eclipse-Community/UXP/total.svg)]()
+
+SourceForge Downloads: ![SourceForge Downloads](https://img.shields.io/sourceforge/dt/lun3r)
+
+Some advantages over upstream and roytam1's New Moon are:
+- More optimizations than upstream.
+- Installer and true portable variants plus other features from Mypal like duplicate tab.
+- Experimental e10s support. (it works better in Hydra)
+- Better interoperability with upstream. (using SQL storage instead of DBM)
+- JPEG XL support!
+- Lun3r/New Moon theme coloring is fixed on XP.
+- Windows theme version override.
+- Added back Nvidia 3D. (untested)
+- Integrated PDF reader.
+- GPU/hardware acceleration in VMware Workstation 16 and above!
+- Windows theme version override, ability to use modern (Windows 10) theme on any OS, or enable (Windows 7) Aero theme on Windows 10!
+
+## Credits
+
+If I've forgotten to put your name here, please let me know and I'll add it.
+
+- [Feodor2](https://github.com/Feodor2) - Portable mode, theme fixes, and more from Mypal.
+- [Librewolf Developers](https://codeberg.org/librewolf) - Privacy tweaks from Librewolf. (Has not been implemented yet)
+- [Solinus](https://solinus.neocities.org/) - Branding visuals, icons and fancy text.
+
+Major core browser engine contributions:
+- [wuggy (Dactyloidae)](https://repo.dactyloidae.xyz/Dactyloidae) - Multiple improvements to the browser, most notably the big performance improvements. (Has not been implemented yet)
+- [roytam1](https://github.com/roytam1) - Windows XP support code, e10s, WebExtensions, and more for UXP.
+- [Moonchild Productions](https://repo.palemoon.org/MoonchildProductions) - For creating the Unified XUL Platform, the core of this project.
+- [Mozilla Developers](https://github.com/mozilla-firefox) - Firefox ESR 52 browser base.
+
+# Original repository readme
+
 # Unified XUL Platform (UXP)
 
 This repository holds the code for a unified application platform for XUL-based

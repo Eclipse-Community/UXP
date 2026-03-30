@@ -31,9 +31,9 @@
     <vbox id="aboutHeaderBox" />
     <vbox id="aboutVersionBox" flex="3">
 #ifdef HAVE_64BIT_BUILD
-#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION__ (64-bit)</label>
+#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION_DISPLAY__ (64-bit)</label>
 #else
-#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION__ (32-bit)</label>
+#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION_DISPLAY__ (32-bit)</label>
 #endif
         <label id="distribution" class="text-blurb"/>
         <label id="distributionId" class="text-blurb"/>
@@ -43,22 +43,22 @@
         <description class="text-credits text-center">
 #if defined(MOZ_OFFICIAL_BRANDING) || defined(MC_OFFICIAL)
 #ifdef MC_PRIVATE_BUILD
-          This is a private build of Pale Moon. If you did not manually build this copy from source yourself, then please download an official version from the <label class="text-link" href="http://www.palemoon.org/">Pale Moon website</label>.
+          This is a private build of Lun3r. If you did not manually build this copy from source yourself, then please download an official version from the <label class="text-link" href="https://eclipse.cx/projects/lun3r">Eclipse Community website</label>.
 #else
-          <label class="text-link" href="http://www.palemoon.org">Pale Moon</label> is released by <label class="text-link" href="http://www.moonchildproductions.info">Moonchild Productions</label>.
+          <label class="text-link" href="https://eclipse.cx/projects/lun3r">&brandShorterName;</label> is released by <label class="text-link" href="https://eclipse.cx">&vendorShortName;</label>.
         </description>
         <description class="text-credits text-center">
           Special thanks to all our supporters and donors for making this browser possible!
         </description>
         <description class="text-credits">
-          If you wish to contribute, please consider helping out by providing support to other users on the <label class="text-link" href="https://forum.palemoon.org/">Pale Moon forum</label>
-          or getting involved in our development by tackling some of the issues found in our GitHub issue tracker.
+          If you wish to contribute, please consider helping out by providing support to other users on the <label class="text-link" href="https://board.eclipse.cx/">&vendorShortName; forum</label>
+          or getting involved in our development by tackling some of the issues found in our <label class="text-link" href="https://github.com/Eclipse-Community/UXP/">GitHub issue tracker</label>.
 #endif
 #else
           &brandFullName; is released by &vendorShortName;.
         </description>
         <description class="text-credits">
-          This is an unofficial build of Pale Moon. For official builds, please go to <label class="text-link" href="http://www.palemoon.org/">the Pale Moon website</label>.
+          This is an unofficial build of Lun3r. For official builds, please go to <label class="text-link" href="https://eclipse.cx/projects/lun3r">Eclipse Community website</label>.
 #endif
         </description>    
     </vbox>
