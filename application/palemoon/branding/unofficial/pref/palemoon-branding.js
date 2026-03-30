@@ -4,7 +4,7 @@
 #include ../../shared/pref/uaoverrides.inc
 
 pref("startup.homepage_override_url","");
-pref("app.releaseNotesURL", "https://rtfreesoft.blogspot.com/search/label/newmoon");
+pref("app.releaseNotesURL", "");
 
 // Updates disabled
 pref("app.update.enabled", false);

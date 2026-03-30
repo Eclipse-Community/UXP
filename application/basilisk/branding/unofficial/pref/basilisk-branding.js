@@ -5,10 +5,6 @@
 #filter substitution
 #filter emptyLines
 
-// Set defines to construct URLs
-#define BRANDING_BASEURL basilisk-browser.org
-#define BRANDING_SITEURL www.@BRANDING_BASEURL@
-
 // Shared Branding Preferences
 // XXX: These should REALLY go back to application preferences
 #include ../../shared/preferences.inc
@@ -19,10 +15,10 @@ pref("startup.homepage_welcome_url", "");
 pref("startup.homepage_welcome_url.additional", "");
 
 // Version release notes
-pref("app.releaseNotesURL", "https://rtfreesoft.blogspot.com/search/label/serpent");
+pref("app.releaseNotesURL", "");
 
 // base url for web-based feedback pages
-pref("app.feedback.baseURL", "https://msfn.org/board/topic/177125-my-build-of-new-moon-temp-name-aka-pale-moon-fork-targetting-xp/?do=getNewComment");
+pref("app.feedback.baseURL", "");
 
 // Vendor home page
 pref("app.vendorURL", "about:");
