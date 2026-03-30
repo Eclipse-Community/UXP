@@ -39,21 +39,6 @@ function init(aEvent)
     // Pref is unset
   }
 
-  // Include the build ID 
-  let versionField = document.getElementById("version");
-  let version = Services.appinfo.version;
-  let buildID = Services.appinfo.appBuildID;
-  let year = buildID.slice(0, 4);
-  let month = buildID.slice(4, 6);
-  let day = buildID.slice(6, 8);
-  let hour = buildID.slice(8, 10);
-  let minute = buildID.slice(10, 12);
-  if (Services.prefs.getBoolPref("general.useragent.appVersionIsBuildID")) {
-    versionField.textContent = `${year}.${month}.${day}`;
-  } else {
-    versionField.textContent = `v` + version + ` (${year}-${month}-${day})`;
-  }
-  
   // Display warning if this is an "a#" (nightly or aurora) build
   if (/a\d+$/.test(version)) {
     document.getElementById("experimental").hidden = false;
