@@ -1,4 +1,4 @@
 ;!@Install@!UTF-8!
-Title="New Moon"
+Title="Lun3r"
 RunProgram="setup.exe"
 ;!@InstallEnd@!

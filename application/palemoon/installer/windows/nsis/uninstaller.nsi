@@ -227,27 +227,27 @@ Section "Uninstall"
     ${un.SetAppLSPCategories}
   ${EndIf}
 
-  ${un.RegCleanAppHandler} "NewMoonURL"
-  ${un.RegCleanAppHandler} "NewMoonHTML"
+  ${un.RegCleanAppHandler} "Lun3rURL"
+  ${un.RegCleanAppHandler} "Lun3rHTML"
   ${un.RegCleanProtocolHandler} "ftp"
   ${un.RegCleanProtocolHandler} "http"
   ${un.RegCleanProtocolHandler} "https"
 
   ClearErrors
-  ReadRegStr $R9 HKCR "NewMoonHTML" ""
-  ; Don't clean up the file handlers if the NewMoonHTML key still exists since
+  ReadRegStr $R9 HKCR "Lun3rHTML" ""
+  ; Don't clean up the file handlers if the Lun3rHTML key still exists since
   ; there should be a second installation that may be the default file handler
   ${If} ${Errors}
-    ${un.RegCleanFileHandler}  ".htm"   "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".html"  "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".shtml" "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".xht"   "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".xhtml" "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".oga"  "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".ogg"  "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".ogv"  "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".pdf"  "NewMoonHTML"
-    ${un.RegCleanFileHandler}  ".webm"  "NewMoonHTML"
+    ${un.RegCleanFileHandler}  ".htm"   "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".html"  "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".shtml" "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".xht"   "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".xhtml" "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".oga"  "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".ogg"  "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".ogv"  "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".pdf"  "Lun3rHTML"
+    ${un.RegCleanFileHandler}  ".webm"  "Lun3rHTML"
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM

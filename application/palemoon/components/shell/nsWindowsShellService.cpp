@@ -101,18 +101,18 @@ OpenKeyForReading(HKEY aKeyRoot, const nsAString& aKeyName, HKEY* aKey)
 //    .htm .html .shtml .xht .xhtml 
 //   are mapped like so:
 //
-//   HKCU\SOFTWARE\Classes\.<ext>\      (default)         REG_SZ     NewMoonHTML
+//   HKCU\SOFTWARE\Classes\.<ext>\      (default)         REG_SZ     Lun3rHTML
 //
 //   as aliases to the class:
 //
-//   HKCU\SOFTWARE\Classes\NewMoonHTML\
+//   HKCU\SOFTWARE\Classes\Lun3rHTML\
 //     DefaultIcon                      (default)         REG_SZ     <apppath>,1
 //     shell\open\command               (default)         REG_SZ     <apppath> -osint -url "%1"
 //     shell\open\ddeexec               (default)         REG_SZ     <empty string>
 //
 // - Windows Vista and above Protocol Handler
 //
-//   HKCU\SOFTWARE\Classes\NewMoonURL\  (default)         REG_SZ     <appname> URL
+//   HKCU\SOFTWARE\Classes\Lun3rURL\  (default)         REG_SZ     <appname> URL
 //                                      EditFlags         REG_DWORD  2
 //                                      FriendlyTypeName  REG_SZ     <appname> URL
 //     DefaultIcon                      (default)         REG_SZ     <apppath>,1
@@ -157,7 +157,7 @@ typedef struct {
 } SETTING;
 
 // Find a way to unhardcode this
-#define APP_REG_NAME L"New Moon"
+#define APP_REG_NAME L"Lun3r"
 #define VAL_FILE_ICON "%APPPATH%,1"
 #define VAL_OPEN "\"%APPPATH%\" -osint -url \"%1\""
 #define OLD_VAL_OPEN "\"%APPPATH%\" -requestPending -osint -url \"%1\""
@@ -183,10 +183,10 @@ static SETTING gSettings[] = {
   // File Handler Class
   // ***keep this as the first entry because when aForAllTypes is not set below
   // it will skip over this check.***
-  { MAKE_KEY_NAME1("NewMoonHTML", SOC), VAL_OPEN, OLD_VAL_OPEN },
+  { MAKE_KEY_NAME1("Lun3rHTML", SOC), VAL_OPEN, OLD_VAL_OPEN },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME1("NewMoonURL", SOC), VAL_OPEN, OLD_VAL_OPEN },
+  { MAKE_KEY_NAME1("Lun3rURL", SOC), VAL_OPEN, OLD_VAL_OPEN },
 
   // Protocol Handlers
   { MAKE_KEY_NAME1("HTTP", DI), VAL_FILE_ICON },
@@ -200,10 +200,10 @@ static SETTING gSettings[] = {
 // are incorrect they are fixed without notifying the user.
 static SETTING gDDESettings[] = {
   // File Handler Class
-  { MAKE_KEY_NAME1("Software\\Classes\\NewMoonHTML", SOD) },
+  { MAKE_KEY_NAME1("Software\\Classes\\Lun3rHTML", SOD) },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME1("Software\\Classes\\NewMoonURL", SOD) },
+  { MAKE_KEY_NAME1("Software\\Classes\\Lun3rURL", SOD) },
 
   // Protocol Handlers
   { MAKE_KEY_NAME1("Software\\Classes\\FTP", SOD) },
@@ -340,7 +340,7 @@ IsAARDefault(const RefPtr<IApplicationAssociationRegistration>& pAAR,
     return false;
   }
 
-  LPCWSTR progID = isProtocol ? L"NewMoonURL" : L"NewMoonHTML";
+  LPCWSTR progID = isProtocol ? L"Lun3rURL" : L"Lun3rHTML";
   bool isDefault = !wcsicmp(registeredApp, progID);
   CoTaskMemFree(registeredApp);
 
@@ -372,8 +372,8 @@ IsDefaultBrowserWin8(bool aCheckAllTypes, bool* aIsDefaultBrowser)
 
 /*
  * Query's the AAR for the default status.
- * This only checks for NewMoonURL and if aCheckAllTypes is set, then
- * it also checks for NewMoonHTML.  Note that those ProgIDs are shared
+ * This only checks for Lun3rURL and if aCheckAllTypes is set, then
+ * it also checks for Lun3rHTML.  Note that those ProgIDs are shared
  * by all PaleMoon browsers.
 */
 bool
