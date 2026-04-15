@@ -446,6 +446,15 @@ pref("browser.ghostbuster.enabled",               true);
 // misbehave. Should also avoid spurious GCs during ghostbusting.
 pref("javascript.options.gc_on_memory_pressure",  false);
 
+pref("javascript.options.baselinejit.unsafe_eager_compilation", false);
+pref("javascript.options.ion.unsafe_eager_compilation", false);
+pref("javascript.options.baselinejit.threshold", 4);
+pref("javascript.options.ion.threshold", 25);
+pref("javascript.options.mem.high_water_mark", 256);
+pref("javascript.options.mem.gc_incremental", false);
+pref("javascript.options.mem.gc_compacting", false);
+pref("javascript.options.mem.gc_incremental_slice_ms", 40);
+
 // This is the pref to control the location bar, change this to true to
 // force this - this makes the origin of popup windows more obvious to avoid
 // spoofing. We would rather not do it by default because it affects UE for web

@@ -168,7 +168,7 @@ DefaultJitOptions::DefaultJitOptions()
     SET_DEFAULT(osrPcMismatchesBeforeRecompile, 6000);
 
     // The bytecode length limit for small function.
-    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 130);
+    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 200);
 
     // An artificial testing limit for the maximum supported offset of
     // pc-relative jump and call instructions.
