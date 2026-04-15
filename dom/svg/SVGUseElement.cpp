@@ -16,6 +16,11 @@
 #include "nsIURI.h"
 #include "nsSVGEffects.h"
 
+#include "nsDataHashtable.h"
+#include "nsHashKeys.h"
+#include "nsString.h"
+#include "mozilla/dom/Element.h"
+
 NS_IMPL_NS_NEW_NAMESPACED_SVG_ELEMENT(Use)
 
 namespace mozilla {
@@ -517,6 +522,9 @@ SVGUseElement::IsAttributeMapped(const nsIAtom* name) const
   return FindAttributeDependence(name, map) ||
     SVGUseElementBase::IsAttributeMapped(name);
 }
+
+//cache svgs
+static nsDataHashtable<nsStringHashKey, Element*> gIconSymbolCache;
 
 } // namespace dom
 } // namespace mozilla
