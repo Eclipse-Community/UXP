@@ -281,6 +281,7 @@ void
 DefaultJitOptions::resetCompilerWarmUpThreshold()
 {
     forcedDefaultIonWarmUpThreshold.reset();
+    forcedDefaultIonSmallFunctionWarmUpThreshold.reset();
 
     // Undo eager compilation
     if (eagerCompilation) {
