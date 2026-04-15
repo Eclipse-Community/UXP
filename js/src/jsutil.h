@@ -19,6 +19,20 @@
 
 #include <limits.h>
 
+#if (defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64))
+# if defined(_MSC_VER)
+#  if defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#   define JS_HAVE_SSE2_INTRINSICS 1
+#  endif
+# elif defined(__SSE2__)
+#  define JS_HAVE_SSE2_INTRINSICS 1
+# endif
+#endif
+
+#if defined(JS_HAVE_SSE2_INTRINSICS)
+# include <emmintrin.h>
+#endif
+
 #include "js/Utility.h"
 #include "js/Value.h"
 
@@ -41,7 +55,115 @@ js_memcpy(void* dst_, const void* src_, size_t len)
     MOZ_ASSERT_IF(dst >= src, (size_t) (dst - src) >= len);
     MOZ_ASSERT_IF(src >= dst, (size_t) (src - dst) >= len);
 
+#if defined(JS_HAVE_SSE2_INTRINSICS)
+    if (len >= 64) {
+        uint8_t* d = (uint8_t*)dst;
+        const uint8_t* s = (const uint8_t*)src;
+
+        while (len >= 64) {
+            __m128i v0 = _mm_loadu_si128((const __m128i*)(s + 0));
+            __m128i v1 = _mm_loadu_si128((const __m128i*)(s + 16));
+            __m128i v2 = _mm_loadu_si128((const __m128i*)(s + 32));
+            __m128i v3 = _mm_loadu_si128((const __m128i*)(s + 48));
+            _mm_storeu_si128((__m128i*)(d + 0), v0);
+            _mm_storeu_si128((__m128i*)(d + 16), v1);
+            _mm_storeu_si128((__m128i*)(d + 32), v2);
+            _mm_storeu_si128((__m128i*)(d + 48), v3);
+            d += 64;
+            s += 64;
+            len -= 64;
+        }
+
+        while (len >= 16) {
+            __m128i v = _mm_loadu_si128((const __m128i*)s);
+            _mm_storeu_si128((__m128i*)d, v);
+            d += 16;
+            s += 16;
+            len -= 16;
+        }
+
+        if (len) {
+            memcpy(d, s, len);
+        }
+        return dst;
+    }
+#endif
+
     return memcpy(dst, src, len);
+}
+
+static MOZ_ALWAYS_INLINE void*
+js_memmove(void* dst_, const void* src_, size_t len)
+{
+    char* dst = (char*) dst_;
+    const char* src = (const char*) src_;
+
+    if (dst == src || !len) {
+        return dst;
+    }
+
+#if defined(JS_HAVE_SSE2_INTRINSICS)
+    if (len >= 64) {
+        uint8_t* d = (uint8_t*)dst;
+        const uint8_t* s = (const uint8_t*)src;
+
+        if (d < s || d >= s + len) {
+            return js_memcpy(dst, src, len);
+        }
+
+        d += len;
+        s += len;
+        while (len >= 16) {
+            d -= 16;
+            s -= 16;
+            __m128i v = _mm_loadu_si128((const __m128i*)s);
+            _mm_storeu_si128((__m128i*)d, v);
+            len -= 16;
+        }
+
+        while (len--) {
+            *--d = *--s;
+        }
+        return dst;
+    }
+#endif
+
+    return memmove(dst, src, len);
+}
+
+static MOZ_ALWAYS_INLINE void*
+js_memset(void* dst_, uint8_t value, size_t len)
+{
+    char* dst = (char*) dst_;
+
+#if defined(JS_HAVE_SSE2_INTRINSICS)
+    if (len >= 64) {
+        uint8_t* d = (uint8_t*)dst;
+        __m128i v = _mm_set1_epi8((char)value);
+
+        while (len >= 64) {
+            _mm_storeu_si128((__m128i*)(d + 0), v);
+            _mm_storeu_si128((__m128i*)(d + 16), v);
+            _mm_storeu_si128((__m128i*)(d + 32), v);
+            _mm_storeu_si128((__m128i*)(d + 48), v);
+            d += 64;
+            len -= 64;
+        }
+
+        while (len >= 16) {
+            _mm_storeu_si128((__m128i*)d, v);
+            d += 16;
+            len -= 16;
+        }
+
+        while (len--) {
+            *d++ = (char)value;
+        }
+        return dst;
+    }
+#endif
+
+    return memset(dst, value, len);
 }
 
 namespace js {

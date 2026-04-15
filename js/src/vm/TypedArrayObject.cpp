@@ -3,8 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include <emmintrin.h> // SSE2
-
 #include "vm/TypedArrayObject.h"
 
 #include "mozilla/Alignment.h"
@@ -58,58 +56,6 @@ using mozilla::AssertedCast;
 using JS::CanonicalizeNaN;
 using JS::ToInt32;
 using JS::ToUint32;
-
-// SSE2 version of memcpy_sse2 and memset_sse2 for faster JS n shit
-static inline void
-memcpy_sse2(void* dst, const void* src, size_t n)
-{
-    uint8_t* d = (uint8_t*)dst;
-    const uint8_t* s = (const uint8_t*)src;
-
-    // Align to 16 bytes
-    while (((uintptr_t)d & 15) && n) {
-        *d++ = *s++;
-        n--;
-    }
-
-    // 16‑byte chunks
-    while (n >= 16) {
-        __m128i v = _mm_loadu_si128((__m128i*)s);
-        _mm_storeu_si128((__m128i*)d, v);
-        s += 16;
-        d += 16;
-        n -= 16;
-    }
-
-    // tail
-    while (n--) {
-        *d++ = *s++;
-    }
-}
-
-static inline void
-memset_sse2(void* dst, uint8_t value, size_t n)
-{
-    uint8_t* d = (uint8_t*)dst;
-
-    // Align
-    while (((uintptr_t)d & 15) && n) {
-        *d++ = value;
-        n--;
-    }
-
-    __m128i v = _mm_set1_epi8(value);
-
-    while (n >= 16) {
-        _mm_storeu_si128((__m128i*)d, v);
-        d += 16;
-        n -= 16;
-    }
-
-    while (n--) {
-        *d++ = value;
-    }
-}
 
 
 /*
@@ -198,7 +144,7 @@ TypedArrayObject::ensureHasBuffer(JSContext* cx, Handle<TypedArrayObject*> tarra
         return false;
 
     // tarray is not shared, because if it were it would have a buffer.
-    memcpy_sse2(buffer->dataPointer(), tarray->viewDataUnshared(), tarray->byteLength());
+    js_memcpy(buffer->dataPointer(), tarray->viewDataUnshared(), tarray->byteLength());
 
     // If the object is in the nursery, the buffer will be freed by the next
     // nursery GC. Free the data slot pointer if the object has no inline data.
@@ -593,7 +539,7 @@ class TypedArrayObjectTemplate : public TypedArrayObject
         } else {
             void* data = obj->fixedData(FIXED_DATA_START);
             obj->initPrivate(data);
-            memset_sse2(data, 0, len * sizeof(NativeType));
+            js_memset(data, 0, len * sizeof(NativeType));
 #ifdef DEBUG
             if (len == 0) {
                 uint8_t* elements = static_cast<uint8_t*>(data);
@@ -722,7 +668,7 @@ class TypedArrayObjectTemplate : public TypedArrayObject
 
             void* data = tarray->fixedData(FIXED_DATA_START);
             tarray->initPrivate(data);
-            memset_sse2(data, 0, nbytes);
+            js_memset(data, 0, nbytes);
         }
     }
 
@@ -759,7 +705,7 @@ class TypedArrayObjectTemplate : public TypedArrayObject
                 return nullptr;
             }
 
-            memset_sse2(buf, 0, nbytes);
+            js_memset(buf, 0, nbytes);
          }
 
         RootedObject tmp(cx, NewObjectWithGroup<TypedArrayObject>(cx, group, allocKind, newKind));
@@ -2215,7 +2161,7 @@ struct DataViewIO
     static void fromBuffer(DataType* dest, const uint8_t* unalignedBuffer, bool wantSwap)
     {
         MOZ_ASSERT((reinterpret_cast<uintptr_t>(dest) & (Min<size_t>(MOZ_ALIGNOF(void*), sizeof(DataType)) - 1)) == 0);
-        memcpy_sse2((void*) dest, unalignedBuffer, sizeof(ReadWriteType));
+        js_memcpy((void*) dest, unalignedBuffer, sizeof(ReadWriteType));
         if (wantSwap) {
             ReadWriteType* rwDest = reinterpret_cast<ReadWriteType*>(dest);
             *rwDest = swapBytes(*rwDest);
@@ -2228,7 +2174,7 @@ struct DataViewIO
         ReadWriteType temp = *reinterpret_cast<const ReadWriteType*>(src);
         if (wantSwap)
             temp = swapBytes(temp);
-        memcpy_sse2(unalignedBuffer, (void*) &temp, sizeof(ReadWriteType));
+        js_memcpy(unalignedBuffer, (void*) &temp, sizeof(ReadWriteType));
     }
 };
 

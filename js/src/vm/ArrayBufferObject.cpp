@@ -3,8 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include <emmintrin.h> // SSE2
-
 #include "vm/ArrayBufferObject-inl.h"
 #include "vm/ArrayBufferObject.h"
 
@@ -66,58 +64,6 @@ using mozilla::Nothing;
 
 using namespace js;
 using namespace js::gc;
-
-// SSE2 version of memcpy_sse2_sse2 and memset_sse2_sse2 for faster JS n shit
-static inline void
-memcpy_sse2(void* dst, const void* src, size_t n)
-{
-    uint8_t* d = (uint8_t*)dst;
-    const uint8_t* s = (const uint8_t*)src;
-
-    // Align to 16 bytes
-    while (((uintptr_t)d & 15) && n) {
-        *d++ = *s++;
-        n--;
-    }
-
-    // 16‑byte chunks
-    while (n >= 16) {
-        __m128i v = _mm_loadu_si128((__m128i*)s);
-        _mm_storeu_si128((__m128i*)d, v);
-        s += 16;
-        d += 16;
-        n -= 16;
-    }
-
-    // tail
-    while (n--) {
-        *d++ = *s++;
-    }
-}
-
-static inline void
-memset_sse2(void* dst, uint8_t value, size_t n)
-{
-    uint8_t* d = (uint8_t*)dst;
-
-    // Align
-    while (((uintptr_t)d & 15) && n) {
-        *d++ = value;
-        n--;
-    }
-
-    __m128i v = _mm_set1_epi8(value);
-
-    while (n >= 16) {
-        _mm_storeu_si128((__m128i*)d, v);
-        d += 16;
-        n -= 16;
-    }
-
-    while (n--) {
-        *d++ = value;
-    }
-}
 
 /*
  * Convert |v| to an array index for an array of length |length| per
@@ -850,7 +796,7 @@ ArrayBufferObject::prepareForAsmJS(JSContext* cx, Handle<ArrayBufferObject*> buf
         }
 
         void* data = wasmBuf->dataPointer();
-        memcpy_sse2(data, buffer->dataPointer(), length);
+        js_memcpy(data, buffer->dataPointer(), length);
 
         // Swap the new elements into the ArrayBufferObject. Mark the
         // ArrayBufferObject so we don't do this again.
@@ -872,7 +818,7 @@ ArrayBufferObject::prepareForAsmJS(JSContext* cx, Handle<ArrayBufferObject*> buf
         BufferContents contents = AllocateArrayBufferContents(cx, buffer->byteLength());
         if (!contents)
             return false;
-        memcpy_sse2(contents.data(), buffer->dataPointer(), buffer->byteLength());
+        js_memcpy(contents.data(), buffer->dataPointer(), buffer->byteLength());
         buffer->changeContents(cx, contents, OwnsData);
     }
 
@@ -1049,7 +995,7 @@ ArrayBufferObject::wasmMovingGrowToSize(uint32_t newSize,
     BufferContents contents = BufferContents::create<WASM>(newRawBuf->dataPointer());
     newBuf->initialize(newSize, contents, OwnsData);
 
-    memcpy_sse2(newBuf->dataPointer(), oldBuf->dataPointer(), oldBuf->byteLength());
+    js_memcpy(newBuf->dataPointer(), oldBuf->dataPointer(), oldBuf->byteLength());
     ArrayBufferObject::detach(cx, oldBuf, BufferContents::createPlain(nullptr));
     return true;
 }
@@ -1151,7 +1097,7 @@ ArrayBufferObject::create(JSContext* cx, uint32_t nbytes, BufferContents content
 
     if (!contents) {
         void* data = obj->inlineDataPointer();
-        memset_sse2(data, 0, nbytes);
+        js_memset(data, 0, nbytes);
         obj->initialize(nbytes, BufferContents::createPlain(data), DoesntOwnData);
     } else {
         obj->initialize(nbytes, contents, ownsState);
@@ -1236,7 +1182,7 @@ ArrayBufferObject::externalizeContents(JSContext* cx, Handle<ArrayBufferObject*>
     BufferContents newContents = AllocateArrayBufferContents(cx, buffer->byteLength());
     if (!newContents)
         return BufferContents::createPlain(nullptr);
-    memcpy_sse2(newContents.data(), contents.data(), buffer->byteLength());
+    js_memcpy(newContents.data(), contents.data(), buffer->byteLength());
     buffer->changeContents(cx, newContents, DoesntOwnData);
 
     return newContents;
@@ -1271,7 +1217,7 @@ ArrayBufferObject::stealContents(JSContext* cx, Handle<ArrayBufferObject*> buffe
         return BufferContents::createPlain(nullptr);
 
     if (buffer->byteLength() > 0)
-        memcpy_sse2(contentsCopy.data(), oldContents.data(), buffer->byteLength());
+        js_memcpy(contentsCopy.data(), oldContents.data(), buffer->byteLength());
     ArrayBufferObject::detach(cx, buffer, oldContents);
     return contentsCopy;
 }
@@ -1324,7 +1270,7 @@ ArrayBufferObject::copyData(Handle<ArrayBufferObject*> toBuffer, uint32_t toInde
     MOZ_ASSERT(fromBuffer->byteLength() >= fromIndex);
     MOZ_ASSERT(fromBuffer->byteLength() >= fromIndex + count);
 
-    memcpy_sse2(toBuffer->dataPointer() + toIndex, fromBuffer->dataPointer() + fromIndex, count);
+    js_memcpy(toBuffer->dataPointer() + toIndex, fromBuffer->dataPointer() + fromIndex, count);
 }
 
 /* static */ void
