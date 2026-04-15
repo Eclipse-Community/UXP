@@ -554,7 +554,7 @@ class ElementSpecific
           case Scalar::Uint8:
           case Scalar::Uint8Clamped: {
             SharedMem<JS_VOLATILE_ARM uint8_t*> src = data.cast<JS_VOLATILE_ARM uint8_t*>();
-                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                        if (std::is_same<T, uint8_clamped>::value || std::is_same<T, uint8_t>::value) {
                                 Ops::podCopy(dest, data.cast<T*>(), count);
                                 break;
                         }
@@ -846,7 +846,7 @@ class ElementSpecific
           case Scalar::Uint8:
           case Scalar::Uint8Clamped: {
             uint8_t* src = static_cast<uint8_t*>(data);
-                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                        if (std::is_same<T, uint8_clamped>::value || std::is_same<T, uint8_t>::value) {
                                 Ops::podCopy(dest, SharedMem<void*>::unshared(src).template cast<T*>(), len);
                                 break;
                         }
