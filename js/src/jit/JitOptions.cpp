@@ -167,9 +167,9 @@ DefaultJitOptions::DefaultJitOptions()
     // invalidating the script.
     SET_DEFAULT(osrPcMismatchesBeforeRecompile, 6000);
 
-    // The bytecode length limit for small function. jQuery has many helpers
-    // just above 200 bytecodes, so raise this to compile them sooner.
-    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 320);
+    // The bytecode length limit for small function. Keep this modest to avoid
+    // startup regressions from classifying too many wrapper functions as small.
+    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 256);
 
     // An artificial testing limit for the maximum supported offset of
     // pc-relative jump and call instructions.
