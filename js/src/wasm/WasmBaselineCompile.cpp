@@ -4280,12 +4280,18 @@ BaseCompiler::emitShlI32()
 void
 BaseCompiler::emitShlI64()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI64 r = popI64();
+    masm.lshift64(Imm32(c & 63), r.reg);
+    pushI64(r);
+  } else {
     RegI64 r0, r1;
     pop2xI64ForShiftOrRotate(&r0, &r1);
     masm.lshift64(lowPart(r1), r0.reg);
     freeI64(r1);
     pushI64(r0);
+  }
 }
 
 void
@@ -4309,12 +4315,18 @@ BaseCompiler::emitShrI32()
 void
 BaseCompiler::emitShrI64()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI64 r = popI64();
+    masm.rshift64Arithmetic(Imm32(c & 63), r.reg);
+    pushI64(r);
+  } else {
     RegI64 r0, r1;
     pop2xI64ForShiftOrRotate(&r0, &r1);
     masm.rshift64Arithmetic(lowPart(r1), r0.reg);
     freeI64(r1);
     pushI64(r0);
+  }
 }
 
 void
@@ -4338,56 +4350,98 @@ BaseCompiler::emitShrU32()
 void
 BaseCompiler::emitShrU64()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI64 r = popI64();
+    masm.rshift64(Imm32(c & 63), r.reg);
+    pushI64(r);
+  } else {
     RegI64 r0, r1;
     pop2xI64ForShiftOrRotate(&r0, &r1);
     masm.rshift64(lowPart(r1), r0.reg);
     freeI64(r1);
     pushI64(r0);
+  }
 }
 
 void
 BaseCompiler::emitRotrI32()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI32 r = popI32();
+    masm.rotateRight(Imm32(c & 31), r.reg, r.reg);
+    pushI32(r);
+  } else {
     RegI32 r0, r1;
     pop2xI32ForShiftOrRotate(&r0, &r1);
     masm.rotateRight(r1.reg, r0.reg, r0.reg);
     freeI32(r1);
     pushI32(r0);
+  }
 }
 
 void
 BaseCompiler::emitRotrI64()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI64 r = popI64();
+#ifdef JS_PUNBOX64
+    masm.rotateRight64(Imm32(c & 63), r.reg, r.reg);
+#else
+    RegI32 temp = needI32();
+    masm.rotateRight64(Imm32(c & 63), r.reg, r.reg, temp.reg);
+    freeI32(temp);
+#endif
+    pushI64(r);
+  } else {
     RegI64 r0, r1;
     pop2xI64ForShiftOrRotate(&r0, &r1);
     masm.rotateRight64(lowPart(r1), r0.reg, r0.reg, maybeHighPart(r1));
     freeI64(r1);
     pushI64(r0);
+  }
 }
 
 void
 BaseCompiler::emitRotlI32()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI32 r = popI32();
+    masm.rotateLeft(Imm32(c & 31), r.reg, r.reg);
+    pushI32(r);
+  } else {
     RegI32 r0, r1;
     pop2xI32ForShiftOrRotate(&r0, &r1);
     masm.rotateLeft(r1.reg, r0.reg, r0.reg);
     freeI32(r1);
     pushI32(r0);
+  }
 }
 
 void
 BaseCompiler::emitRotlI64()
 {
-    // TODO / OPTIMIZE: Constant rhs (Bug 1316803)
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI64 r = popI64();
+#ifdef JS_PUNBOX64
+    masm.rotateLeft64(Imm32(c & 63), r.reg, r.reg);
+#else
+    RegI32 temp = needI32();
+    masm.rotateLeft64(Imm32(c & 63), r.reg, r.reg, temp.reg);
+    freeI32(temp);
+#endif
+    pushI64(r);
+  } else {
     RegI64 r0, r1;
     pop2xI64ForShiftOrRotate(&r0, &r1);
     masm.rotateLeft64(lowPart(r1), r0.reg, r0.reg, maybeHighPart(r1));
     freeI64(r1);
     pushI64(r0);
+  }
 }
 
 void
