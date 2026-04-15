@@ -1261,6 +1261,11 @@ pref("javascript.options.unboxed_objects",  false);
 pref("javascript.options.baselinejit",      true);
 pref("javascript.options.ion",              true);
 pref("javascript.options.ion.inlining",     true);
+// JIT warm-up thresholds (-1 keeps engine defaults).
+// Lower values can improve sustained throughput on large script bundles
+// (e.g. React/jQuery-heavy apps) at some startup compile cost.
+pref("javascript.options.baselinejit.threshold", 8);
+pref("javascript.options.ion.threshold", 80);
 pref("javascript.options.asmjs",            true);
 pref("javascript.options.wasm",             true);
 // wasm jit crashes in 32bit builds because of 64bit casts so

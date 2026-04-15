@@ -1426,6 +1426,10 @@ ReloadPrefsCallback(const char* pref, void* data)
     bool useBaselineEager = Preferences::GetBool(JS_OPTIONS_DOT_STR
                                                  "baselinejit.unsafe_eager_compilation");
     bool useIonEager = Preferences::GetBool(JS_OPTIONS_DOT_STR "ion.unsafe_eager_compilation");
+    int32_t baselineWarmUpThreshold = Preferences::GetInt(JS_OPTIONS_DOT_STR
+                                                          "baselinejit.threshold", -1);
+    int32_t ionWarmUpThreshold = Preferences::GetInt(JS_OPTIONS_DOT_STR
+                                                     "ion.threshold", -1);
 
     sDiscardSystemSource = Preferences::GetBool(JS_OPTIONS_DOT_STR "discardSystemSource");
 
@@ -1474,10 +1478,23 @@ ReloadPrefsCallback(const char* pref, void* data)
 
     JS_SetParallelParsingEnabled(cx, parallelParsing);
     JS_SetOffthreadIonCompilationEnabled(cx, offthreadIonCompilation);
+
+    // -1 means "use engine default".
+    if (baselineWarmUpThreshold < -1)
+        baselineWarmUpThreshold = -1;
+    if (ionWarmUpThreshold < -1)
+        ionWarmUpThreshold = -1;
+
+    // Eager compilation prefs still override threshold prefs.
+    if (useBaselineEager)
+        baselineWarmUpThreshold = 0;
+    if (useIonEager)
+        ionWarmUpThreshold = 0;
+
     JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_BASELINE_WARMUP_TRIGGER,
-                                  useBaselineEager ? 0 : -1);
+                                  baselineWarmUpThreshold);
     JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_ION_WARMUP_TRIGGER,
-                                  useIonEager ? 0 : -1);
+                                  ionWarmUpThreshold);
     JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_UNBOXED_OBJECTS,
                                   unboxedObjects);
     JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_ION_INLINING,
