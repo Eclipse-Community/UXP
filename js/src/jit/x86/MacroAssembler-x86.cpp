@@ -25,36 +25,14 @@ static const double TO_DOUBLE_HIGH_SCALE = 0x100000000;
 bool
 MacroAssemblerX86::convertUInt64ToDoubleNeedsTemp()
 {
-    return HasSSE3();
+    return false;
 }
 
 void
 MacroAssemblerX86::convertUInt64ToDouble(Register64 src, FloatRegister dest, Register temp)
 {
-    // SUBPD needs SSE2, HADDPD needs SSE3.
-    if (!HasSSE3()) {
-        MOZ_ASSERT(temp == Register::Invalid());
-
-        // Zero the dest register to break dependencies, see convertInt32ToDouble.
-        zeroDouble(dest);
-
-        asMasm().Push(src.high);
-        asMasm().Push(src.low);
-        fild(Operand(esp, 0));
-
-        Label notNegative;
-        asMasm().branch32(Assembler::NotSigned, src.high, Imm32(0), &notNegative);
-        double add_constant = 18446744073709551616.0; // 2^64
-        store64(Imm64(mozilla::BitwiseCast<uint64_t>(add_constant)), Address(esp, 0));
-        fld(Operand(esp, 0));
-        faddp();
-        bind(&notNegative);
-
-        fstp(Operand(esp, 0));
-        vmovsd(Address(esp, 0), dest);
-        asMasm().freeStack(2*sizeof(intptr_t));
-        return;
-    }
+    (void) temp;
+    MOZ_ASSERT(HasSSE2());
 
     // Following operation uses entire 128-bit of dest XMM register.
     // Currently higher 64-bit is free when we have access to lower 64-bit.
@@ -113,7 +91,8 @@ MacroAssemblerX86::convertUInt64ToDouble(Register64 src, FloatRegister dest, Reg
     //   LO(dest) = double(0x HHHHHHHH 00000000) + double(0x 00000000 LLLLLLLL)
     //            = double(0x HHHHHHHH LLLLLLLL)
     //            = double(src)
-    vhaddpd(dest128, dest128);
+    vmovhlps(dest128, dest128, ScratchSimd128Reg);
+    vaddsd(ScratchSimd128Reg, dest128, dest128);
 }
 
 void
