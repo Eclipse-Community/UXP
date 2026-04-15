@@ -16,6 +16,16 @@
 #include "gfx2DGlue.h"
 #include <algorithm>
 
+// SSE2 optimization support
+#ifdef MOZILLA_MAY_SUPPORT_SSE2
+#include <emmintrin.h>
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else
+#include <xmmintrin.h>
+#endif
+#endif
+
 using namespace mozilla;
 using namespace mozilla::gfx;
 
@@ -112,6 +122,54 @@ gfxImageSurface::gfxImageSurface(const IntSize& size, gfxImageFormat format, boo
     AllocateAndInit(0, 0, aClear);
 }
 
+// SSE2-optimized memset for large aligned buffers
+#ifdef MOZILLA_MAY_SUPPORT_SSE2
+static inline void
+MemsetSSE2(unsigned char* aData, int aValue, size_t aSize)
+{
+    if (aSize < 128 || !mozilla::supports_sse2()) {
+        memset(aData, aValue, aSize);
+        return;
+    }
+
+    unsigned char* ptr = aData;
+    
+    // Align to 16-byte boundary
+    size_t alignedStart = 16 - (NS_PTR_TO_UINT32(ptr) & 0xf);
+    if (alignedStart < 16) {
+        memset(ptr, aValue, alignedStart);
+        ptr += alignedStart;
+        aSize -= alignedStart;
+    }
+
+    // Fill with SSE2 (16 bytes at a time)
+    if (aValue == 0) {
+        __m128i zero = _mm_setzero_si128();
+        size_t sse2Bytes = (aSize / 16) * 16;
+        for (size_t i = 0; i < sse2Bytes; i += 16) {
+            _mm_stream_si128((__m128i*)(ptr + i), zero);
+        }
+        ptr += sse2Bytes;
+        aSize -= sse2Bytes;
+    } else {
+        // For non-zero values, replicate to fill 16 bytes
+        uint32_t pattern = aValue | (aValue << 8) | (aValue << 16) | (aValue << 24);
+        __m128i fillValue = _mm_set_epi32(pattern, pattern, pattern, pattern);
+        size_t sse2Bytes = (aSize / 16) * 16;
+        for (size_t i = 0; i < sse2Bytes; i += 16) {
+            _mm_stream_si128((__m128i*)(ptr + i), fillValue);
+        }
+        ptr += sse2Bytes;
+        aSize -= sse2Bytes;
+    }
+
+    // Handle remaining bytes
+    if (aSize > 0) {
+        memset(ptr, aValue, aSize);
+    }
+}
+#endif // MOZILLA_MAY_SUPPORT_SSE2
+
 void 
 gfxImageSurface::AllocateAndInit(long aStride, int32_t aMinimalAllocation,
                                  bool aClear)
@@ -136,8 +194,13 @@ gfxImageSurface::AllocateAndInit(long aStride, int32_t aMinimalAllocation,
         mData = (unsigned char *) TryAllocAlignedBytes(aMinimalAllocation);
         if (!mData)
             return;
-        if (aClear)
+        if (aClear) {
+#ifdef MOZILLA_MAY_SUPPORT_SSE2
+            MemsetSSE2(mData, 0, aMinimalAllocation);
+#else
             memset(mData, 0, aMinimalAllocation);
+#endif
+        }
     }
 
     mOwnsData = true;
@@ -228,10 +291,81 @@ gfxImageSurface::SizeOfIsMeasured() const
     return true;
 }
 
+// SSE2-optimized memory copy for aligned large buffers
+#ifdef MOZILLA_MAY_SUPPORT_SSE2
+static inline void
+CopyForStrideSSE2(unsigned char* aDest, unsigned char* aSrc, const IntSize& aSize, long aDestStride, long aSrcStride)
+{
+    if (aDestStride == aSrcStride && mozilla::supports_sse2()) {
+        size_t totalBytes = static_cast<size_t>(aSrcStride) * aSize.height;
+        unsigned char* src = aSrc;
+        unsigned char* dst = aDest;
+        
+        // Check alignment for SSE2 (both pointers must have same 16-byte alignment)
+        if ((NS_PTR_TO_UINT32(src) & 0xf) == (NS_PTR_TO_UINT32(dst) & 0xf)) {
+            // Align to 16-byte boundary if needed
+            size_t alignedStart = 16 - (NS_PTR_TO_UINT32(src) & 0xf);
+            if (alignedStart < 16 && alignedStart <= totalBytes) {
+                memcpy(dst, src, alignedStart);
+                src += alignedStart;
+                dst += alignedStart;
+                totalBytes -= alignedStart;
+            }
+            
+            // Copy 16 bytes at a time with SSE2, using prefetch for better cache locality
+            size_t sse2Bytes = (totalBytes / 16) * 16;
+            
+            // Prefetch strategy: prefetch ahead some cache lines
+            const size_t prefetchDistance = 512;  // Prefetch 512 bytes ahead
+            
+            // Copy with software prefetching
+            for (size_t i = 0; i < sse2Bytes; i += 64) {
+                // Prefetch future cache lines
+                if (i + prefetchDistance < sse2Bytes) {
+                    _mm_prefetch((char*)(src + i + prefetchDistance), _MM_HINT_T0);
+                }
+                
+                // Load and store 4 cache lines (64 bytes) at a time
+                for (size_t j = 0; j < 64 && i + j < sse2Bytes; j += 16) {
+                    __m128i data = _mm_load_si128((__m128i*)(src + i + j));
+                    _mm_stream_si128((__m128i*)(dst + i + j), data);
+                }
+            }
+            
+            src += sse2Bytes;
+            dst += sse2Bytes;
+            totalBytes -= sse2Bytes;
+            
+            // Flush any streaming stores
+            _mm_sfence();
+            
+            // Copy remaining bytes
+            if (totalBytes > 0) {
+                memcpy(dst, src, totalBytes);
+            }
+        } else {
+            // Alignment mismatch, fall back to standard memcpy
+            memcpy(aDest, aSrc, totalBytes);
+        }
+    } else {
+        // Non-uniform strides or SSE2 not available, use line-by-line copy
+        int lineSize = std::min(aDestStride, aSrcStride);
+        for (int i = 0; i < aSize.height; i++) {
+            unsigned char* src = aSrc + aSrcStride * i;
+            unsigned char* dst = aDest + aDestStride * i;
+            memcpy(dst, src, lineSize);
+        }
+    }
+}
+#endif // MOZILLA_MAY_SUPPORT_SSE2
+
 // helper function for the CopyFrom methods
 static void
 CopyForStride(unsigned char* aDest, unsigned char* aSrc, const IntSize& aSize, long aDestStride, long aSrcStride)
 {
+#ifdef MOZILLA_MAY_SUPPORT_SSE2
+    CopyForStrideSSE2(aDest, aSrc, aSize, aDestStride, aSrcStride);
+#else
     if (aDestStride == aSrcStride) {
         memcpy (aDest, aSrc, aSrcStride * aSize.height);
     } else {
@@ -239,10 +373,10 @@ CopyForStride(unsigned char* aDest, unsigned char* aSrc, const IntSize& aSize, l
         for (int i = 0; i < aSize.height; i++) {
             unsigned char* src = aSrc + aSrcStride * i;
             unsigned char* dst = aDest + aDestStride * i;
-
             memcpy (dst, src, lineSize);
         }
     }
+#endif
 }
 
 // helper function for the CopyFrom methods

@@ -138,12 +138,16 @@ elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
             'gfxDWriteFonts.cpp',
         ]
 
-# Are we targeting x86 or x64?  If so, build gfxAlphaRecoverySSE2.cpp.
+# Are we targeting x86 or x64?  If so, build gfxAlphaRecoverySSE2.cpp with
+# SSE2 optimization, and also apply SSE2 support to gfxImageSurface.cpp.
 if CONFIG['INTEL_ARCHITECTURE']:
-    SOURCES += ['gfxAlphaRecoverySSE2.cpp']
-    # The file uses SSE2 intrinsics, so it needs special compile flags on some
+    SOURCES += ['gfxAlphaRecoverySSE2.cpp', 'gfxImageSurface.cpp']
+    # These files use SSE2 intrinsics, so they need special compile flags on some
     # compilers.
     SOURCES['gfxAlphaRecoverySSE2.cpp'].flags += CONFIG['SSE2_FLAGS']
+    SOURCES['gfxImageSurface.cpp'].flags += CONFIG['SSE2_FLAGS']
+else:
+    UNIFIED_SOURCES += ['gfxImageSurface.cpp']
 
 SOURCES += [
     'ContextStateTracker.cpp',
@@ -178,7 +182,6 @@ UNIFIED_SOURCES += [
     'gfxGradientCache.cpp',
     'gfxGraphiteShaper.cpp',
     'gfxHarfBuzzShaper.cpp',
-    'gfxImageSurface.cpp',
     'gfxMathTable.cpp',
     'gfxMatrix.cpp',
     'gfxPattern.cpp',
