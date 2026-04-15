@@ -13,6 +13,7 @@
 #include "imgRequestProxy.h"
 #include "Units.h"
 #include "nsCycleCollectionParticipant.h"
+#include "nsITimer.h"
 
 namespace mozilla {
 class EventChainPreVisitor;
@@ -167,6 +168,14 @@ public:
   void SetUseMap(const nsAString& aUseMap, ErrorResult& aError)
   {
     SetHTMLAttr(nsGkAtoms::usemap, aUseMap, aError);
+  }
+  void GetLoading(nsAString& aLoading)
+  {
+    GetHTMLAttr(nsGkAtoms::loading, aLoading);
+  }
+  void SetLoading(const nsAString& aLoading, ErrorResult& aError)
+  {
+    SetHTMLAttr(nsGkAtoms::loading, aLoading, aError);
   }
   void SetName(const nsAString& aName, ErrorResult& aError)
   {
@@ -360,6 +369,15 @@ protected:
   RefPtr<ResponsiveImageSelector> mResponsiveSelector;
 
 private:
+  static void LazyLoadTimerCallback(nsITimer* aTimer, void* aClosure);
+
+  bool ShouldLazyLoadImage() const;
+  bool IsProbablyVisibleForLazyLoad() const;
+  bool ShouldDeferImageLoad() const;
+  void EnsureLazyLoadTimer();
+  void StopLazyLoadTimer();
+  void MaybeLoadImageFromLazyTimer();
+
   bool SourceElementMatches(nsIContent* aSourceNode);
 
   static void MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
@@ -392,6 +410,8 @@ private:
   RefPtr<ImageLoadTask> mPendingImageLoadTask;
   nsCOMPtr<nsIPrincipal> mSrcTriggeringPrincipal;
   nsCOMPtr<nsIPrincipal> mSrcsetTriggeringPrincipal;
+  nsCOMPtr<nsITimer> mLazyLoadTimer;
+  bool mLazyLoadAlwaysLoad;
 
   // Last URL that was attempted to load by this element.
   nsCOMPtr<nsIURI> mLastSelectedSource;
