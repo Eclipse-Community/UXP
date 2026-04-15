@@ -174,12 +174,20 @@ RangeAnalysis::addBetaNodes()
         if (!compare->isNumericComparison())
             continue;
 
-        // TODO: support unsigned comparisons
-        if (compare->compareType() == MCompare::Compare_UInt32)
-            continue;
-
         MDefinition* left = compare->getOperand(0);
         MDefinition* right = compare->getOperand(1);
+
+        if (compare->compareType() == MCompare::Compare_UInt32) {
+            Range* leftRange = left->range();
+            Range* rightRange = right->range();
+            if (!leftRange || !rightRange ||
+                !leftRange->isFiniteNonNegative() ||
+                !rightRange->isFiniteNonNegative())
+            {
+                continue;
+            }
+        }
+
         double bound;
         double conservativeLower = NegativeInfinity<double>();
         double conservativeUpper = PositiveInfinity<double>();

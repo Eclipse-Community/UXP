@@ -1772,15 +1772,18 @@ StringMatch(const TextChar* text, uint32_t textLen, const PatChar* pat, uint32_t
      * speed of memcmp. For small patterns, a simple loop is faster. We also can't
      * use memcmp if one of the strings is TwoByte and the other is Latin-1.
      *
-     * FIXME: Linux memcmp performance is sad and the manual loop is faster.
+     * On Linux, keep the manual path for moderate patterns and only enable
+     * memcmp for very large patterns where it tends to amortize call overhead.
      */
-    return
-#if !defined(__linux__)
-        (patLen > 128 && IsSame<TextChar, PatChar>::value)
-            ? Matcher<MemCmp<TextChar, PatChar>, TextChar, PatChar>(text, textLen, pat, patLen)
-            :
+#if defined(__linux__)
+    const bool useMemCmp = patLen > 512 && IsSame<TextChar, PatChar>::value;
+#else
+    const bool useMemCmp = patLen > 128 && IsSame<TextChar, PatChar>::value;
 #endif
-              Matcher<ManualCmp<TextChar, PatChar>, TextChar, PatChar>(text, textLen, pat, patLen);
+
+    return useMemCmp
+           ? Matcher<MemCmp<TextChar, PatChar>, TextChar, PatChar>(text, textLen, pat, patLen)
+           : Matcher<ManualCmp<TextChar, PatChar>, TextChar, PatChar>(text, textLen, pat, patLen);
 }
 
 static int32_t

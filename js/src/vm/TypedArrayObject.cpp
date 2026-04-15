@@ -7,6 +7,7 @@
 
 #include "mozilla/Alignment.h"
 #include "mozilla/Casting.h"
+#include "mozilla/EndianUtils.h"
 #include "mozilla/FloatingPoint.h"
 #include "mozilla/PodOperations.h"
 
@@ -2112,35 +2113,6 @@ needToSwapBytes(bool littleEndian)
 #endif
 }
 
-static inline uint8_t
-swapBytes(uint8_t x)
-{
-    return x;
-}
-
-static inline uint16_t
-swapBytes(uint16_t x)
-{
-    return ((x & 0xff) << 8) | (x >> 8);
-}
-
-static inline uint32_t
-swapBytes(uint32_t x)
-{
-    return ((x & 0xff) << 24) |
-           ((x & 0xff00) << 8) |
-           ((x & 0xff0000) >> 8) |
-           ((x & 0xff000000) >> 24);
-}
-
-static inline uint64_t
-swapBytes(uint64_t x)
-{
-    uint32_t a = x & UINT32_MAX;
-    uint32_t b = x >> 32;
-    return (uint64_t(swapBytes(a)) << 32) | swapBytes(b);
-}
-
 template <typename DataType> struct DataToRepType { typedef DataType result; };
 template <> struct DataToRepType<int8_t>   { typedef uint8_t result; };
 template <> struct DataToRepType<uint8_t>  { typedef uint8_t result; };
@@ -2158,23 +2130,111 @@ struct DataViewIO
 {
     typedef typename DataToRepType<DataType>::result ReadWriteType;
 
+    static MOZ_ALWAYS_INLINE ReadWriteType fromBytes(const uint8_t* unalignedBuffer, bool wantSwap)
+    {
+        if (sizeof(ReadWriteType) == 1)
+            return ReadWriteType(*unalignedBuffer);
+
+        if (sizeof(ReadWriteType) == 2) {
+#if MOZ_LITTLE_ENDIAN
+            return ReadWriteType(wantSwap ? mozilla::BigEndian::readUint16(unalignedBuffer)
+                                          : mozilla::LittleEndian::readUint16(unalignedBuffer));
+#else
+            return ReadWriteType(wantSwap ? mozilla::LittleEndian::readUint16(unalignedBuffer)
+                                          : mozilla::BigEndian::readUint16(unalignedBuffer));
+#endif
+        }
+
+        if (sizeof(ReadWriteType) == 4) {
+#if MOZ_LITTLE_ENDIAN
+            return ReadWriteType(wantSwap ? mozilla::BigEndian::readUint32(unalignedBuffer)
+                                          : mozilla::LittleEndian::readUint32(unalignedBuffer));
+#else
+            return ReadWriteType(wantSwap ? mozilla::LittleEndian::readUint32(unalignedBuffer)
+                                          : mozilla::BigEndian::readUint32(unalignedBuffer));
+#endif
+        }
+
+        if (sizeof(ReadWriteType) == 8) {
+    #if MOZ_LITTLE_ENDIAN
+            return ReadWriteType(wantSwap ? mozilla::BigEndian::readUint64(unalignedBuffer)
+                          : mozilla::LittleEndian::readUint64(unalignedBuffer));
+    #else
+            return ReadWriteType(wantSwap ? mozilla::LittleEndian::readUint64(unalignedBuffer)
+                          : mozilla::BigEndian::readUint64(unalignedBuffer));
+    #endif
+        }
+
+        MOZ_CRASH("unsupported DataView element size");
+    }
+
+    static MOZ_ALWAYS_INLINE void toBytes(uint8_t* unalignedBuffer, ReadWriteType value,
+                                          bool wantSwap)
+    {
+        if (sizeof(ReadWriteType) == 1) {
+            *unalignedBuffer = uint8_t(value);
+            return;
+        }
+
+        if (sizeof(ReadWriteType) == 2) {
+#if MOZ_LITTLE_ENDIAN
+            if (wantSwap)
+                mozilla::BigEndian::writeUint16(unalignedBuffer, uint16_t(value));
+            else
+                mozilla::LittleEndian::writeUint16(unalignedBuffer, uint16_t(value));
+#else
+            if (wantSwap)
+                mozilla::LittleEndian::writeUint16(unalignedBuffer, uint16_t(value));
+            else
+                mozilla::BigEndian::writeUint16(unalignedBuffer, uint16_t(value));
+#endif
+            return;
+        }
+
+        if (sizeof(ReadWriteType) == 4) {
+#if MOZ_LITTLE_ENDIAN
+            if (wantSwap)
+                mozilla::BigEndian::writeUint32(unalignedBuffer, uint32_t(value));
+            else
+                mozilla::LittleEndian::writeUint32(unalignedBuffer, uint32_t(value));
+#else
+            if (wantSwap)
+                mozilla::LittleEndian::writeUint32(unalignedBuffer, uint32_t(value));
+            else
+                mozilla::BigEndian::writeUint32(unalignedBuffer, uint32_t(value));
+#endif
+            return;
+        }
+
+        if (sizeof(ReadWriteType) == 8) {
+#if MOZ_LITTLE_ENDIAN
+            if (wantSwap)
+                mozilla::BigEndian::writeUint64(unalignedBuffer, uint64_t(value));
+            else
+                mozilla::LittleEndian::writeUint64(unalignedBuffer, uint64_t(value));
+#else
+            if (wantSwap)
+                mozilla::LittleEndian::writeUint64(unalignedBuffer, uint64_t(value));
+            else
+                mozilla::BigEndian::writeUint64(unalignedBuffer, uint64_t(value));
+#endif
+            return;
+        }
+
+        MOZ_CRASH("unsupported DataView element size");
+    }
+
     static void fromBuffer(DataType* dest, const uint8_t* unalignedBuffer, bool wantSwap)
     {
         MOZ_ASSERT((reinterpret_cast<uintptr_t>(dest) & (Min<size_t>(MOZ_ALIGNOF(void*), sizeof(DataType)) - 1)) == 0);
-        js_memcpy((void*) dest, unalignedBuffer, sizeof(ReadWriteType));
-        if (wantSwap) {
-            ReadWriteType* rwDest = reinterpret_cast<ReadWriteType*>(dest);
-            *rwDest = swapBytes(*rwDest);
-        }
+        *reinterpret_cast<ReadWriteType*>(dest) = fromBytes(unalignedBuffer, wantSwap);
     }
 
     static void toBuffer(uint8_t* unalignedBuffer, const DataType* src, bool wantSwap)
     {
         MOZ_ASSERT((reinterpret_cast<uintptr_t>(src) & (Min<size_t>(MOZ_ALIGNOF(void*), sizeof(DataType)) - 1)) == 0);
         ReadWriteType temp = *reinterpret_cast<const ReadWriteType*>(src);
-        if (wantSwap)
-            temp = swapBytes(temp);
-        js_memcpy(unalignedBuffer, (void*) &temp, sizeof(ReadWriteType));
+        toBytes(unalignedBuffer, temp, wantSwap);
     }
 };
 

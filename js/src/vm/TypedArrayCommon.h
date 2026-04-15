@@ -12,6 +12,14 @@
 #include "mozilla/FloatingPoint.h"
 
 #include <algorithm>
+#include <cstring>
+#include <type_traits>
+
+#if (defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_X86)) && \
+    (defined(_M_X64) || defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2))
+#  include <emmintrin.h>
+#  define JS_TYPEDARRAY_HAS_SSE2 1
+#endif
 
 #include "jsarray.h"
 #include "jscntxt.h"
@@ -199,6 +207,186 @@ ConvertNumber(From src)
     return To(src);
 }
 
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+static inline void
+SSE2ConvertFloatToUint8Clamped(uint8_clamped* dest, const float* src, uint32_t count)
+{
+    const __m128 fzero = _mm_set1_ps(0.0f);
+    const __m128 fmax = _mm_set1_ps(255.0f);
+    const __m128i izero = _mm_setzero_si128();
+    const __m128i i255 = _mm_set1_epi16(255);
+
+    uint32_t i = 0;
+    for (; i + 4 <= count; i += 4) {
+        __m128 values = _mm_loadu_ps(src + i);
+
+        // Keep exact scalar behavior for NaN lanes.
+        if (_mm_movemask_ps(_mm_cmpunord_ps(values, values))) {
+            for (uint32_t j = 0; j < 4; ++j)
+                dest[i + j] = uint8_clamped(src[i + j]);
+            continue;
+        }
+
+        values = _mm_min_ps(_mm_max_ps(values, fzero), fmax);
+        __m128i ints = _mm_cvtps_epi32(values);
+        __m128i packed16 = _mm_packs_epi32(ints, izero);
+        packed16 = _mm_min_epi16(_mm_max_epi16(packed16, izero), i255);
+        __m128i packed8 = _mm_packus_epi16(packed16, izero);
+
+        uint32_t out = static_cast<uint32_t>(_mm_cvtsi128_si32(packed8));
+        ::memcpy(reinterpret_cast<uint8_t*>(dest + i), &out, sizeof(out));
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertDoubleToUint8Clamped(uint8_clamped* dest, const double* src, uint32_t count)
+{
+    const __m128d dzero = _mm_set1_pd(0.0);
+    const __m128d dmax = _mm_set1_pd(255.0);
+    const __m128i izero = _mm_setzero_si128();
+    const __m128i i255 = _mm_set1_epi16(255);
+
+    uint32_t i = 0;
+    for (; i + 2 <= count; i += 2) {
+        __m128d values = _mm_loadu_pd(src + i);
+
+        // Keep exact scalar behavior for NaN lanes.
+        if (_mm_movemask_pd(_mm_cmpunord_pd(values, values))) {
+            for (uint32_t j = 0; j < 2; ++j)
+                dest[i + j] = uint8_clamped(src[i + j]);
+            continue;
+        }
+
+        values = _mm_min_pd(_mm_max_pd(values, dzero), dmax);
+        __m128i ints = _mm_cvtpd_epi32(values);
+        __m128i packed16 = _mm_packs_epi32(ints, izero);
+        packed16 = _mm_min_epi16(_mm_max_epi16(packed16, izero), i255);
+        __m128i packed8 = _mm_packus_epi16(packed16, izero);
+
+        uint16_t out = static_cast<uint16_t>(static_cast<uint32_t>(_mm_cvtsi128_si32(packed8)) & 0xFFFFu);
+        ::memcpy(reinterpret_cast<uint8_t*>(dest + i), &out, sizeof(out));
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertInt8ToUint8Clamped(uint8_clamped* dest, const int8_t* src, uint32_t count)
+{
+    const __m128i izero = _mm_setzero_si128();
+    uint8_t* out = reinterpret_cast<uint8_t*>(dest);
+
+    uint32_t i = 0;
+    for (; i + 16 <= count; i += 16) {
+        __m128i values = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i));
+        __m128i negatives = _mm_cmpgt_epi8(izero, values);
+        __m128i clamped = _mm_andnot_si128(negatives, values);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(out + i), clamped);
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertInt16ToUint8Clamped(uint8_clamped* dest, const int16_t* src, uint32_t count)
+{
+    uint8_t* out = reinterpret_cast<uint8_t*>(dest);
+
+    uint32_t i = 0;
+    for (; i + 16 <= count; i += 16) {
+        __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i));
+        __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i + 8));
+        __m128i packed = _mm_packus_epi16(a, b);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(out + i), packed);
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertUint16ToUint8Clamped(uint8_clamped* dest, const uint16_t* src, uint32_t count)
+{
+    const __m128i i255 = _mm_set1_epi16(255);
+    uint8_t* out = reinterpret_cast<uint8_t*>(dest);
+
+    uint32_t i = 0;
+    for (; i + 16 <= count; i += 16) {
+        __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i));
+        __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i + 8));
+
+        __m128i aExcess = _mm_subs_epu16(a, i255);
+        __m128i bExcess = _mm_subs_epu16(b, i255);
+        __m128i aClamped = _mm_sub_epi16(a, aExcess);
+        __m128i bClamped = _mm_sub_epi16(b, bExcess);
+
+        __m128i packed = _mm_packus_epi16(aClamped, bClamped);
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(out + i), packed);
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertInt32ToUint8Clamped(uint8_clamped* dest, const int32_t* src, uint32_t count)
+{
+    const __m128i izero = _mm_setzero_si128();
+    const __m128i i255 = _mm_set1_epi16(255);
+    uint8_t* out = reinterpret_cast<uint8_t*>(dest);
+
+    uint32_t i = 0;
+    for (; i + 8 <= count; i += 8) {
+        __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i));
+        __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i + 4));
+        __m128i words = _mm_packs_epi32(a, b);
+        words = _mm_min_epi16(_mm_max_epi16(words, izero), i255);
+        __m128i bytes = _mm_packus_epi16(words, izero);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(out + i), bytes);
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+
+static inline void
+SSE2ConvertUint32ToUint8Clamped(uint8_clamped* dest, const uint32_t* src, uint32_t count)
+{
+    const __m128i izero = _mm_setzero_si128();
+    const __m128i maskHigh = _mm_set1_epi32(0xFFFFFF00u);
+    const __m128i maskLow = _mm_set1_epi32(0x000000FFu);
+    const __m128i i255d = _mm_set1_epi32(255);
+    uint8_t* out = reinterpret_cast<uint8_t*>(dest);
+
+    uint32_t i = 0;
+    for (; i + 8 <= count; i += 8) {
+        __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i));
+        __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src + i + 4));
+
+        __m128i aFits = _mm_cmpeq_epi32(_mm_and_si128(a, maskHigh), izero);
+        __m128i bFits = _mm_cmpeq_epi32(_mm_and_si128(b, maskHigh), izero);
+
+        __m128i aLow = _mm_and_si128(a, maskLow);
+        __m128i bLow = _mm_and_si128(b, maskLow);
+
+        __m128i aClamped = _mm_or_si128(_mm_and_si128(aFits, aLow), _mm_andnot_si128(aFits, i255d));
+        __m128i bClamped = _mm_or_si128(_mm_and_si128(bFits, bLow), _mm_andnot_si128(bFits, i255d));
+
+        __m128i words = _mm_packs_epi32(aClamped, bClamped);
+        __m128i bytes = _mm_packus_epi16(words, izero);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(out + i), bytes);
+    }
+
+    for (; i < count; ++i)
+        dest[i] = uint8_clamped(src[i]);
+}
+#endif
+
 template<typename NativeType> struct TypeIDOfType;
 template<> struct TypeIDOfType<int8_t> { static const Scalar::Type id = Scalar::Int8; };
 template<> struct TypeIDOfType<uint8_t> { static const Scalar::Type id = Scalar::Uint8; };
@@ -275,24 +463,25 @@ class UnsharedOps
 
     template<typename T>
     static void podCopy(SharedMem<T*> dest, SharedMem<T*> src, size_t nelem) {
-        // std::copy_n better matches the argument values/types of this
-        // function, but as noted below it allows the input/output ranges to
-        // overlap.  std::copy does not, so use it so the compiler has extra
-        // ability to optimize.
-        const auto* first = src.unwrapUnshared();
-        const auto* last = first + nelem;
-        auto* result = dest.unwrapUnshared();
-        std::copy(first, last, result);
+        static_assert(std::is_trivially_copyable<T>::value,
+                      "podCopy requires trivially copyable element type");
+        if (nelem == 0)
+            return;
+
+        // Keep this on memcpy so platform CRT implementations can use their
+        // best vectorized copy routines (SSE2/AVX/etc.) where available.
+        ::memcpy(dest.unwrapUnshared(), src.unwrapUnshared(), nelem * sizeof(T));
     }
 
     template<typename T>
     static void podMove(SharedMem<T*> dest, SharedMem<T*> src, size_t n) {
-        // std::copy_n copies from |src| to |dest| starting from |src|, so
-        // input/output ranges *may* permissibly overlap, as this function
-        // allows.
-        const auto* start = src.unwrapUnshared();
-        auto* result = dest.unwrapUnshared();
-        std::copy_n(start, n, result);
+        static_assert(std::is_trivially_copyable<T>::value,
+                      "podMove requires trivially copyable element type");
+        if (n == 0)
+            return;
+
+        // memmove handles overlap and still maps to optimized runtime copies.
+        ::memmove(dest.unwrapUnshared(), src.unwrapUnshared(), n * sizeof(T));
     }
 
     static SharedMem<void*> extract(TypedArrayObject* obj) {
@@ -350,6 +539,14 @@ class ElementSpecific
         switch (source->as<TypedArrayObject>().type()) {
           case Scalar::Int8: {
             SharedMem<JS_VOLATILE_ARM int8_t*> src = data.cast<JS_VOLATILE_ARM int8_t*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt8ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                            data.cast<int8_t*>().unwrapUnshared(),
+                                                                                            count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
@@ -357,30 +554,66 @@ class ElementSpecific
           case Scalar::Uint8:
           case Scalar::Uint8Clamped: {
             SharedMem<JS_VOLATILE_ARM uint8_t*> src = data.cast<JS_VOLATILE_ARM uint8_t*>();
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                Ops::podCopy(dest, data.cast<T*>(), count);
+                                break;
+                        }
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
           }
           case Scalar::Int16: {
             SharedMem<JS_VOLATILE_ARM int16_t*> src = data.cast<JS_VOLATILE_ARM int16_t*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt16ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                             data.cast<int16_t*>().unwrapUnshared(),
+                                                                                             count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
           }
           case Scalar::Uint16: {
             SharedMem<JS_VOLATILE_ARM uint16_t*> src = data.cast<JS_VOLATILE_ARM uint16_t*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertUint16ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                                data.cast<uint16_t*>().unwrapUnshared(),
+                                                                                                count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
           }
           case Scalar::Int32: {
             SharedMem<JS_VOLATILE_ARM int32_t*> src = data.cast<JS_VOLATILE_ARM int32_t*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt32ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                             data.cast<int32_t*>().unwrapUnshared(),
+                                                                                             count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
           }
           case Scalar::Uint32: {
             SharedMem<JS_VOLATILE_ARM uint32_t*> src = data.cast<JS_VOLATILE_ARM uint32_t*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertUint32ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                                data.cast<uint32_t*>().unwrapUnshared(),
+                                                                                                count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
@@ -399,12 +632,28 @@ class ElementSpecific
           }
           case Scalar::Float32: {
             SharedMem<JS_VOLATILE_ARM float*> src = data.cast<JS_VOLATILE_ARM float*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertFloatToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                             data.cast<float*>().unwrapUnshared(),
+                                                                                             count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
           }
           case Scalar::Float64: {
             SharedMem<JS_VOLATILE_ARM double*> src = data.cast<JS_VOLATILE_ARM double*>();
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertDoubleToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()),
+                                                                                                data.cast<double*>().unwrapUnshared(),
+                                                                                                count);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < count; ++i)
                 Ops::store(dest++, ConvertNumber<T>(Ops::load(src++)));
             break;
@@ -563,6 +812,15 @@ class ElementSpecific
             return true;
         }
 
+        if (std::is_same<T, uint8_clamped>::value &&
+            (source->type() == Scalar::Uint8 || source->type() == Scalar::Uint8Clamped))
+        {
+            SharedMem<T*> src =
+                source->template as<TypedArrayObject>().viewDataEither().template cast<T*>();
+            Ops::podMove(dest, src, len);
+            return true;
+        }
+
         // Copy |source| in case it overlaps the target elements being set.
         size_t sourceByteLen = len * source->bytesPerElement();
         void* data = target->zone()->template pod_malloc<uint8_t>(sourceByteLen);
@@ -575,6 +833,12 @@ class ElementSpecific
         switch (source->type()) {
           case Scalar::Int8: {
             int8_t* src = static_cast<int8_t*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt8ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
@@ -582,30 +846,58 @@ class ElementSpecific
           case Scalar::Uint8:
           case Scalar::Uint8Clamped: {
             uint8_t* src = static_cast<uint8_t*>(data);
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                Ops::podCopy(dest, SharedMem<void*>::unshared(src).template cast<T*>(), len);
+                                break;
+                        }
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
           }
           case Scalar::Int16: {
             int16_t* src = static_cast<int16_t*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt16ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
           }
           case Scalar::Uint16: {
             uint16_t* src = static_cast<uint16_t*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertUint16ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
           }
           case Scalar::Int32: {
             int32_t* src = static_cast<int32_t*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertInt32ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
           }
           case Scalar::Uint32: {
             uint32_t* src = static_cast<uint32_t*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertUint32ToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
@@ -624,12 +916,24 @@ class ElementSpecific
           }
           case Scalar::Float32: {
             float* src = static_cast<float*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertFloatToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;
           }
           case Scalar::Float64: {
             double* src = static_cast<double*>(data);
+#ifdef JS_TYPEDARRAY_HAS_SSE2
+                        if (std::is_same<T, uint8_clamped>::value && std::is_same<Ops, UnsharedOps>::value) {
+                                SSE2ConvertDoubleToUint8Clamped(reinterpret_cast<uint8_clamped*>(dest.unwrapUnshared()), src, len);
+                                break;
+                        }
+#endif
             for (uint32_t i = 0; i < len; ++i)
                 Ops::store(dest++, ConvertNumber<T>(*src++));
             break;

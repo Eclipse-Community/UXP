@@ -17,6 +17,7 @@
 #include "jit/LIR.h"
 #include "jit/Lowering.h"
 #include "jit/MIRGraph.h"
+#include "jit/RangeAnalysis.h"
 #include "vm/RegExpObject.h"
 #include "vm/SelfHosting.h"
 
@@ -2955,9 +2956,19 @@ jit::ExtractLinearInequality(MTest* test, BranchDirection direction,
     MDefinition* lhs = compare->getOperand(0);
     MDefinition* rhs = compare->getOperand(1);
 
-    // TODO: optimize Compare_UInt32
-    if (!compare->isInt32Comparison())
-        return false;
+    if (!compare->isInt32Comparison()) {
+        if (compare->compareType() != MCompare::Compare_UInt32)
+            return false;
+
+        Range* lhsRange = lhs->range();
+        Range* rhsRange = rhs->range();
+        if (!lhsRange || !rhsRange ||
+            !lhsRange->isFiniteNonNegative() ||
+            !rhsRange->isFiniteNonNegative())
+        {
+            return false;
+        }
+    }
 
     MOZ_ASSERT(lhs->type() == MIRType::Int32);
     MOZ_ASSERT(rhs->type() == MIRType::Int32);
