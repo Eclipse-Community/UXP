@@ -3858,12 +3858,54 @@ BaseCompiler::emitSubtractF64()
 void
 BaseCompiler::emitMultiplyI32()
 {
-    // TODO / OPTIMIZE: Multiplication by constant is common (Bug 1275442, 1316803)
-    RegI32 r0, r1;
-    pop2xI32ForIntMulDiv(&r0, &r1);
-    masm.mul32(r1.reg, r0.reg);
-    freeI32(r1);
-    pushI32(r0);
+  int32_t c;
+  if (popConstI32(c)) {
+    RegI32 r = popI32();
+
+    if (c == 0) {
+      masm.move32(Imm32(0), r.reg);
+      pushI32(r);
+      return;
+    }
+
+    if (c == 1) {
+      pushI32(r);
+      return;
+    }
+
+    if (c == -1) {
+      masm.neg32(r.reg);
+      pushI32(r);
+      return;
+    }
+
+    uint32_t mag = c < 0 ? uint32_t(0) - uint32_t(c) : uint32_t(c);
+    if (IsPowerOfTwo(mag)) {
+      uint32_t shift = 0;
+      while ((uint32_t(1) << shift) != mag)
+        shift++;
+
+      masm.lshift32(Imm32(shift), r.reg);
+      if (c < 0)
+        masm.neg32(r.reg);
+
+      pushI32(r);
+      return;
+    }
+
+    RegI32 rhs = needI32();
+    masm.move32(Imm32(c), rhs.reg);
+    masm.mul32(rhs.reg, r.reg);
+    freeI32(rhs);
+    pushI32(r);
+    return;
+  }
+
+  RegI32 r0, r1;
+  pop2xI32ForIntMulDiv(&r0, &r1);
+  masm.mul32(r1.reg, r0.reg);
+  freeI32(r1);
+  pushI32(r0);
 }
 
 void
@@ -3934,17 +3976,43 @@ BaseCompiler::emitQuotientI32()
 void
 BaseCompiler::emitQuotientU32()
 {
-    // TODO / OPTIMIZE: Fast case if lhs >= 0 and rhs is power of two (Bug 1316803)
-    RegI32 r0, r1;
-    pop2xI32ForIntMulDiv(&r0, &r1);
+  int32_t c;
+  if (popConstI32(c)) {
+    uint32_t uc = uint32_t(c);
+    RegI32 r = popI32();
+
+    if (uc != 0 && IsPowerOfTwo(uc)) {
+      uint32_t shift = 0;
+      while ((uint32_t(1) << shift) != uc)
+        shift++;
+      masm.rshift32(Imm32(shift), r.reg);
+      pushI32(r);
+      return;
+    }
+
+    RegI32 rhs = needI32();
+    masm.move32(Imm32(c), rhs.reg);
 
     Label done;
-    checkDivideByZeroI32(r1, r0, &done);
-    masm.quotient32(r1.reg, r0.reg, IsUnsigned(true));
+    checkDivideByZeroI32(rhs, r, &done);
+    masm.quotient32(rhs.reg, r.reg, IsUnsigned(true));
     masm.bind(&done);
 
-    freeI32(r1);
-    pushI32(r0);
+    freeI32(rhs);
+    pushI32(r);
+    return;
+  }
+
+  RegI32 r0, r1;
+  pop2xI32ForIntMulDiv(&r0, &r1);
+
+  Label done;
+  checkDivideByZeroI32(r1, r0, &done);
+  masm.quotient32(r1.reg, r0.reg, IsUnsigned(true));
+  masm.bind(&done);
+
+  freeI32(r1);
+  pushI32(r0);
 }
 
 void
@@ -3967,17 +4035,40 @@ BaseCompiler::emitRemainderI32()
 void
 BaseCompiler::emitRemainderU32()
 {
-    // TODO / OPTIMIZE: Fast case if lhs >= 0 and rhs is power of two (Bug 1316803)
-    RegI32 r0, r1;
-    pop2xI32ForIntMulDiv(&r0, &r1);
+  int32_t c;
+  if (popConstI32(c)) {
+    uint32_t uc = uint32_t(c);
+    RegI32 r = popI32();
+
+    if (uc != 0 && IsPowerOfTwo(uc)) {
+      masm.and32(Imm32(int32_t(uc - 1)), r.reg);
+      pushI32(r);
+      return;
+    }
+
+    RegI32 rhs = needI32();
+    masm.move32(Imm32(c), rhs.reg);
 
     Label done;
-    checkDivideByZeroI32(r1, r0, &done);
-    masm.remainder32(r1.reg, r0.reg, IsUnsigned(true));
+    checkDivideByZeroI32(rhs, r, &done);
+    masm.remainder32(rhs.reg, r.reg, IsUnsigned(true));
     masm.bind(&done);
 
-    freeI32(r1);
-    pushI32(r0);
+    freeI32(rhs);
+    pushI32(r);
+    return;
+  }
+
+  RegI32 r0, r1;
+  pop2xI32ForIntMulDiv(&r0, &r1);
+
+  Label done;
+  checkDivideByZeroI32(r1, r0, &done);
+  masm.remainder32(r1.reg, r0.reg, IsUnsigned(true));
+  masm.bind(&done);
+
+  freeI32(r1);
+  pushI32(r0);
 }
 
 #ifndef INT_DIV_I64_CALLOUT
