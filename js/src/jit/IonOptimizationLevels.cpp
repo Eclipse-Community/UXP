@@ -47,8 +47,11 @@ OptimizationInfo::initNormalOptimizationInfo()
     scalarReplacement_ = true;
     smallFunctionMaxInlineDepth_ = 10;
     compilerWarmUpThreshold_ = CompilerWarmupThreshold;
-    compilerSmallFunctionWarmUpThreshold_ = CompilerSmallFunctionWarmupThreshold;
-    inliningWarmUpThresholdFactor_ = 0.10;
+    // Start compiling tiny helper functions sooner. This is particularly
+    // useful for jQuery-style code with many frequently-called short helpers.
+    compilerSmallFunctionWarmUpThreshold_ = 32;
+    // Inline callees a bit earlier once a script becomes warm.
+    inliningWarmUpThresholdFactor_ = 0.08;
     inliningRecompileThresholdFactor_ = 4;
 }
 
@@ -110,6 +113,16 @@ OptimizationInfo::compilerWarmUpThreshold(JSScript* script, jsbytecode* pc) cons
         if (ratio > 4.0)
             ratio = 4.0;
         warmUpThreshold *= ratio;
+    }
+
+    // jQuery spends a lot of time in medium-small wrappers that are too large
+    // to be classified as "small" but still hot enough to benefit from Ion.
+    // Nudge these scripts toward earlier compilation without affecting large
+    // scripts that are expensive to optimize.
+    if (script->length() <= 400 && numLocalsAndArgs <= 48) {
+        warmUpThreshold = (warmUpThreshold * 3) / 4;
+        if (warmUpThreshold < 30)
+            warmUpThreshold = 30;
     }
 
     if (!pc || JitOptions.eagerCompilation)

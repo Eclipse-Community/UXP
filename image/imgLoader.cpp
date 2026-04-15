@@ -1505,8 +1505,6 @@ imgLoader::PutIntoCache(const ImageCacheKey& aKey, imgCacheEntry* entry)
     MOZ_LOG(gImgLog, LogLevel::Debug,
            ("[this=%p] imgLoader::PutIntoCache -- Element already in the cache",
             nullptr));
-    RefPtr<imgRequest> tmpRequest = tmpCacheEntry->GetRequest();
-
     // If it already exists, and we're putting the same key into the cache, we
     // should remove the old version.
     MOZ_LOG(gImgLog, LogLevel::Debug,
@@ -1796,30 +1794,29 @@ imgLoader::ValidateEntry(imgCacheEntry* aEntry,
 {
   LOG_SCOPE(gImgLog, "imgLoader::ValidateEntry");
 
-  bool hasExpired;
   uint32_t expirationTime = aEntry->GetExpiryTime();
-  if (expirationTime <= SecondsFromPRTime(PR_Now())) {
-    hasExpired = true;
-  } else {
-    hasExpired = false;
-  }
+  uint32_t now = SecondsFromPRTime(PR_Now());
+  bool hasExpired = expirationTime <= now;
 
   nsresult rv;
 
   // Special treatment for file URLs - aEntry has expired if file has changed
-  nsCOMPtr<nsIFileURL> fileUrl(do_QueryInterface(aURI));
-  if (fileUrl) {
-    uint32_t lastModTime = aEntry->GetLoadTime();
+  bool isFileURI = false;
+  if (NS_SUCCEEDED(aURI->SchemeIs("file", &isFileURI)) && isFileURI) {
+    nsCOMPtr<nsIFileURL> fileUrl(do_QueryInterface(aURI));
+    if (fileUrl) {
+      uint32_t lastModTime = aEntry->GetLoadTime();
 
-    nsCOMPtr<nsIFile> theFile;
-    rv = fileUrl->GetFile(getter_AddRefs(theFile));
-    if (NS_SUCCEEDED(rv)) {
-      PRTime fileLastMod;
-      rv = theFile->GetLastModifiedTime(&fileLastMod);
+      nsCOMPtr<nsIFile> theFile;
+      rv = fileUrl->GetFile(getter_AddRefs(theFile));
       if (NS_SUCCEEDED(rv)) {
-        // nsIFile uses millisec, NSPR usec
-        fileLastMod *= 1000;
-        hasExpired = SecondsFromPRTime((PRTime)fileLastMod) > lastModTime;
+        PRTime fileLastMod;
+        rv = theFile->GetLastModifiedTime(&fileLastMod);
+        if (NS_SUCCEEDED(rv)) {
+          // nsIFile uses millisec, NSPR usec
+          fileLastMod *= 1000;
+          hasExpired = SecondsFromPRTime((PRTime)fileLastMod) > lastModTime;
+        }
       }
     }
   }
@@ -1839,9 +1836,8 @@ imgLoader::ValidateEntry(imgCacheEntry* aEntry,
   // just return true in that case.  Doing so would mean that shift-reload
   // doesn't reload data URI documents/images though (which is handy for
   // debugging during gecko development) so we make an exception in that case.
-  nsAutoCString scheme;
-  aURI->GetScheme(scheme);
-  if (scheme.EqualsLiteral("data") &&
+  bool isDataURI = false;
+  if (NS_SUCCEEDED(aURI->SchemeIs("data", &isDataURI)) && isDataURI &&
       !(aLoadFlags & nsIRequest::LOAD_BYPASS_CACHE)) {
     return true;
   }
@@ -1888,7 +1884,7 @@ imgLoader::ValidateEntry(imgCacheEntry* aEntry,
   if ((appCacheContainer = do_GetInterface(request->GetRequest()))) {
     appCacheContainer->GetApplicationCache(getter_AddRefs(requestAppCache));
   }
-  if ((appCacheContainer = do_QueryInterface(aLoadGroup))) {
+  if (aLoadGroup && (appCacheContainer = do_QueryInterface(aLoadGroup))) {
     appCacheContainer->GetApplicationCache(getter_AddRefs(groupAppCache));
   }
 
