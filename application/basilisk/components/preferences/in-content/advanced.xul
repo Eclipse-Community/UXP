@@ -55,6 +55,9 @@
   <preference id="browser.tabs.remote.force-enable"
               name="browser.tabs.remote.force-enable"
               type="bool"/>
+  <preference id="browser.tabs.remote.force-disable"
+              name="browser.tabs.remote.force-disable"
+              type="bool"/>
 
   <!-- Network tab -->
   <preference id="browser.cache.disk.capacity"

@@ -919,6 +919,7 @@ pref("dom.ipc.shims.enabledWarnings", false);
 // Start the browser in e10s mode
 pref("browser.tabs.remote.autostart", true);
 pref("browser.tabs.remote.force-enable", true);
+pref("browser.tabs.remote.force-disable", false);
 pref("browser.tabs.remote.desktopbehavior", true);
 pref("browser.tabs.remote.ignoreBlockPolicy", true);
 // Number of web content processes used by e10s.

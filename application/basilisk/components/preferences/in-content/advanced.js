@@ -178,15 +178,20 @@ var gAdvancedPane = {
 
   readE10sEnabled: function ()
   {
+    let forceDisable = document.getElementById("browser.tabs.remote.force-disable").value;
     let forceEnable = document.getElementById("browser.tabs.remote.force-enable").value;
     let autostart = document.getElementById("browser.tabs.remote.autostart").value;
     let trialAutostart = document.getElementById("browser.tabs.remote.autostart.2").value;
+    if (forceDisable) {
+      return false;
+    }
     return !!(forceEnable || autostart || trialAutostart);
   },
 
   writeE10sEnabled: function ()
   {
     let enabled = document.getElementById("e10sEnabled").checked;
+    document.getElementById("browser.tabs.remote.force-disable").value = !enabled;
     document.getElementById("browser.tabs.remote.force-enable").value = enabled;
     document.getElementById("browser.tabs.remote.autostart").value = enabled;
     document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
@@ -208,6 +213,7 @@ var gAdvancedPane = {
 
     let buttonIndex = confirmRestartPrompt(enabled, 1, true, false);
     if (buttonIndex == CONFIRM_RESTART_PROMPT_RESTART_NOW) {
+      document.getElementById("browser.tabs.remote.force-disable").value = !enabled;
       document.getElementById("browser.tabs.remote.force-enable").value = enabled;
       document.getElementById("browser.tabs.remote.autostart").value = enabled;
       document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
@@ -219,6 +225,7 @@ var gAdvancedPane = {
 
     this._shouldPromptForE10sRestart = false;
     checkbox.checked = this._storedE10sEnabled;
+    document.getElementById("browser.tabs.remote.force-disable").value = !this._storedE10sEnabled;
     document.getElementById("browser.tabs.remote.force-enable").value = this._storedE10sEnabled;
     document.getElementById("browser.tabs.remote.autostart").value = this._storedE10sEnabled;
     document.getElementById("browser.tabs.remote.autostart.2").value = this._storedE10sEnabled;
