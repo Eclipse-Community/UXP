@@ -46,6 +46,12 @@
   <preference id="layout.spellcheckDefault"
               name="layout.spellcheckDefault"
               type="int"/>
+  <preference id="browser.tabs.remote.autostart"
+              name="browser.tabs.remote.autostart"
+              type="bool"/>
+  <preference id="browser.tabs.remote.autostart.2"
+              name="browser.tabs.remote.autostart.2"
+              type="bool"/>
 
   <!-- Network tab -->
   <preference id="browser.cache.disk.capacity"
@@ -177,6 +183,12 @@
                   onsyncfrompreference="return gAdvancedPane.readCheckSpelling();"
                   onsynctopreference="return gAdvancedPane.writeCheckSpelling();"
                   preference="layout.spellcheckDefault"/>
+        <checkbox id="e10sEnabled"
+                  label="&e10sEnabled.label;"
+                  accesskey="&e10sEnabled.accesskey;"
+                  onsyncfrompreference="return gAdvancedPane.readE10sEnabled();"
+                  onsynctopreference="return gAdvancedPane.writeE10sEnabled();"
+                  preference="browser.tabs.remote.autostart"/>
       </groupbox>
     </tabpanel>
 

@@ -11,6 +11,8 @@ const PREF_UPLOAD_ENABLED = "datareporting.healthreport.uploadEnabled";
 
 var gAdvancedPane = {
   _inited: false,
+  _shouldPromptForE10sRestart: true,
+  _storedE10sEnabled: false,
 
   /**
    * Brings the appropriate tab to the front and initializes various bits of UI.
@@ -77,6 +79,10 @@ var gAdvancedPane = {
                      gAdvancedPane.showSecurityDevices);
     setEventListener("cacheSize", "change",
                      gAdvancedPane.updateCacheSizePref);
+    setEventListener("e10sEnabled", "command",
+             gAdvancedPane.updateE10sCheckbox);
+
+    this._storedE10sEnabled = document.getElementById("e10sEnabled").checked;
 
     if (AppConstants.MOZ_WIDGET_GTK) {
       // GTK tabbox' allow the scroll wheel to change the selected tab,
@@ -168,6 +174,50 @@ var gAdvancedPane = {
       return 1;
     }
     return 0;
+  },
+
+  readE10sEnabled: function ()
+  {
+    let autostart = document.getElementById("browser.tabs.remote.autostart").value;
+    let trialAutostart = document.getElementById("browser.tabs.remote.autostart.2").value;
+    return !!(autostart || trialAutostart);
+  },
+
+  writeE10sEnabled: function ()
+  {
+    let enabled = document.getElementById("e10sEnabled").checked;
+    document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
+    return enabled;
+  },
+
+  updateE10sCheckbox: function ()
+  {
+    let checkbox = document.getElementById("e10sEnabled");
+    let enabled = checkbox.checked;
+
+    if (enabled == this._storedE10sEnabled) {
+      return;
+    }
+
+    if (!this._shouldPromptForE10sRestart) {
+      return;
+    }
+
+    let buttonIndex = confirmRestartPrompt(enabled, 1, true, false);
+    if (buttonIndex == CONFIRM_RESTART_PROMPT_RESTART_NOW) {
+      document.getElementById("browser.tabs.remote.autostart").value = enabled;
+      document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
+      let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                         .getService(Ci.nsIAppStartup);
+      appStartup.quit(Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart);
+      return;
+    }
+
+    this._shouldPromptForE10sRestart = false;
+    checkbox.checked = this._storedE10sEnabled;
+    document.getElementById("browser.tabs.remote.autostart").value = this._storedE10sEnabled;
+    document.getElementById("browser.tabs.remote.autostart.2").value = this._storedE10sEnabled;
+    this._shouldPromptForE10sRestart = true;
   },
 
   /**

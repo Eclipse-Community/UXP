@@ -27,6 +27,8 @@
 <!ENTITY allowHWAccel.accesskey          "r">
 <!ENTITY checkSpelling.label             "Check my spelling as I type">
 <!ENTITY checkSpelling.accesskey         "t">
+<!ENTITY e10sEnabled.label               "Enable multi-process &brandShortName; (requires restart)">
+<!ENTITY e10sEnabled.accesskey           "E">
 
 <!ENTITY dataChoicesTab.label            "Data Choices">
 
