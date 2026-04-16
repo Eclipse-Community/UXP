@@ -172,6 +172,21 @@ public:
     mLock->Unlock();
   }
 
+  // Assert that the current thread owns the lock right now.
+  void AssertOwns() const
+  {
+    mLock->AssertCurrentThreadOwns();
+  }
+
+  // Assert that aLock is the lock passed to the constructor and that the
+  // current thread owns it. Pointer equality alone is not sufficient because
+  // lock ownership may be temporarily released with BaseAutoUnlock.
+  void AssertOwns(const T& aLock) const
+  {
+    MOZ_ASSERT(&aLock == mLock);
+    AssertOwns();
+  }
+
 private:
   BaseAutoLock();
   BaseAutoLock(BaseAutoLock&);

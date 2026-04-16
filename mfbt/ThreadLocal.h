@@ -132,6 +132,8 @@ public:
 
   MOZ_MUST_USE inline bool init();
 
+  inline void infallibleInit();
+
   inline T get() const;
 
   inline void set(const T aValue);
@@ -169,6 +171,15 @@ ThreadLocal<T>::init()
   }
   return mInited;
 #endif
+}
+
+template<typename T>
+inline void
+ThreadLocal<T>::infallibleInit()
+{
+  if (!init()) {
+    MOZ_CRASH("unable to initialize ThreadLocal");
+  }
 }
 
 template<typename T>
