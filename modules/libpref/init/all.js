@@ -1294,7 +1294,7 @@ pref("javascript.options.mem.high_water_mark", 128);
 pref("javascript.options.mem.max", -1);
 pref("javascript.options.mem.gc_per_zone", true);
 pref("javascript.options.mem.gc_incremental", true);
-pref("javascript.options.mem.gc_incremental_slice_ms", 20);
+pref("javascript.options.mem.gc_incremental_slice_ms", 10);
 pref("javascript.options.mem.gc_generational", true);
 pref("javascript.options.mem.gc_compacting", true);
 pref("javascript.options.mem.log", false);
@@ -1316,7 +1316,7 @@ pref("javascript.options.mem.gc_low_frequency_heap_growth", 150);
 pref("javascript.options.mem.gc_dynamic_heap_growth", true);
 pref("javascript.options.mem.gc_dynamic_mark_slice", true);
 pref("javascript.options.mem.gc_refresh_frame_slices_enabled", true);
-pref("javascript.options.mem.gc_allocation_threshold_mb", 30);
+pref("javascript.options.mem.gc_allocation_threshold_mb", 20);
 pref("javascript.options.mem.gc_min_empty_chunk_count", 1);
 pref("javascript.options.mem.gc_max_empty_chunk_count", 30);
 
@@ -2817,7 +2817,7 @@ pref("editor.positioning.offset",            0);
 
 pref("dom.use_watchdog", true);
 pref("dom.max_chrome_script_run_time", 30);
-pref("dom.max_script_run_time", 15);
+pref("dom.max_script_run_time", 10);
 
 // Automatically terminate non-responsive scripts if script_run_time expires.
 pref("dom.always_stop_slow_scripts", false);
@@ -2840,7 +2840,7 @@ pref("idle_queue.long_period", 50);
 // period, which makes the point in time that we expect to become busy
 // again be:
 // now + idle_queue.min_period + layout.idle_period.time_limit
-pref("idle_queue.min_period", 3);
+pref("idle_queue.min_period", 1);
 
 // Hang monitor timeout after which we kill the browser, in seconds
 // (0 is disabled)
