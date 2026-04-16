@@ -682,11 +682,7 @@ pref("browser.download.hide_plugins_without_extensions", true);
 // 0 goes Back/Forward
 // 1 act like PgUp/PgDown
 // 2 and other values, nothing
-#ifdef UNIX_BUT_NOT_MAC
 pref("browser.backspace_action", 2);
-#else
-pref("browser.backspace_action", 0);
-#endif
 
 // this will automatically enable inline spellchecking (if it is available) for
 // editable elements in HTML
@@ -922,6 +918,7 @@ pref("dom.ipc.shims.enabledWarnings", false);
 
 // Start the browser in e10s mode
 pref("browser.tabs.remote.autostart", true);
+pref("browser.tabs.remote.force-enable", true);
 pref("browser.tabs.remote.desktopbehavior", true);
 pref("browser.tabs.remote.ignoreBlockPolicy", true);
 // Number of web content processes used by e10s.

@@ -178,14 +178,17 @@ var gAdvancedPane = {
 
   readE10sEnabled: function ()
   {
+    let forceEnable = document.getElementById("browser.tabs.remote.force-enable").value;
     let autostart = document.getElementById("browser.tabs.remote.autostart").value;
     let trialAutostart = document.getElementById("browser.tabs.remote.autostart.2").value;
-    return !!(autostart || trialAutostart);
+    return !!(forceEnable || autostart || trialAutostart);
   },
 
   writeE10sEnabled: function ()
   {
     let enabled = document.getElementById("e10sEnabled").checked;
+    document.getElementById("browser.tabs.remote.force-enable").value = enabled;
+    document.getElementById("browser.tabs.remote.autostart").value = enabled;
     document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
     return enabled;
   },
@@ -205,6 +208,7 @@ var gAdvancedPane = {
 
     let buttonIndex = confirmRestartPrompt(enabled, 1, true, false);
     if (buttonIndex == CONFIRM_RESTART_PROMPT_RESTART_NOW) {
+      document.getElementById("browser.tabs.remote.force-enable").value = enabled;
       document.getElementById("browser.tabs.remote.autostart").value = enabled;
       document.getElementById("browser.tabs.remote.autostart.2").value = enabled;
       let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
@@ -215,6 +219,7 @@ var gAdvancedPane = {
 
     this._shouldPromptForE10sRestart = false;
     checkbox.checked = this._storedE10sEnabled;
+    document.getElementById("browser.tabs.remote.force-enable").value = this._storedE10sEnabled;
     document.getElementById("browser.tabs.remote.autostart").value = this._storedE10sEnabled;
     document.getElementById("browser.tabs.remote.autostart.2").value = this._storedE10sEnabled;
     this._shouldPromptForE10sRestart = true;

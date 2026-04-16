@@ -255,8 +255,8 @@
     <key id="key_delete" keycode="VK_DELETE" command="cmd_delete"/>
     <key id="key_selectAll" key="&selectAllCmd.key;" modifiers="accel"/>
 
-    <key keycode="VK_BACK" command="cmd_handleBackspace"/>
-    <key keycode="VK_BACK" command="cmd_handleShiftBackspace" modifiers="shift"/>
+    <key id="key_handleBackspace" keycode="VK_BACK" command="cmd_handleBackspace"/>
+    <key id="key_handleShiftBackspace" keycode="VK_BACK" command="cmd_handleShiftBackspace" modifiers="shift"/>
 #ifndef XP_MACOSX
     <key id="goBackKb"  keycode="VK_LEFT" command="Browser:Back" modifiers="alt"/>
     <key id="goForwardKb"  keycode="VK_RIGHT" command="Browser:Forward" modifiers="alt"/>

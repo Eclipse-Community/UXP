@@ -990,6 +990,18 @@ var gBrowserInit = {
     XULBrowserWindow.init();
 
     window.messageManager.addMessageListener("Browser:LoadURI", RedirectLoad);
+    if (gMultiProcessBrowser) {
+      // In e10s, let content handle Backspace directly to avoid chrome command
+      // interception breaking editable fields.
+      let backspaceKey = document.getElementById("key_handleBackspace");
+      let shiftBackspaceKey = document.getElementById("key_handleShiftBackspace");
+      if (backspaceKey) {
+        backspaceKey.setAttribute("disabled", "true");
+      }
+      if (shiftBackspaceKey) {
+        shiftBackspaceKey.setAttribute("disabled", "true");
+      }
+    }
 
     if (!gMultiProcessBrowser) {
       // There is a Content:Click message manually sent from content.

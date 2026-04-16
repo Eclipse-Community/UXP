@@ -63,6 +63,7 @@ addMessageListener("ContextMenu:DoCustomCommand", function(message) {
 addMessageListener("RemoteLogins:fillForm", function(message) {
   LoginManagerContent.receiveMessage(message, content);
 });
+
 addEventListener("DOMFormHasPassword", function(event) {
   LoginManagerContent.onDOMFormHasPassword(event, content);
   let formLike = LoginFormFactory.createFromForm(event.target);
