@@ -598,11 +598,12 @@ ContentParent::GetNewOrUsedBrowserProcess(bool aForBrowserElement,
   }
 
   if (contentParents->Length() >= uint32_t(maxContentParents)) {
-    uint32_t maxSelectable = std::min(static_cast<uint32_t>(contentParents->Length()),
-                                      static_cast<uint32_t>(maxContentParents));
+    uint32_t maxSelectable = static_cast<uint32_t>(contentParents->Length());
     uint32_t startIdx = rand() % maxSelectable;
     uint32_t currIdx = startIdx;
     RefPtr<ContentParent> fallback;
+    uint32_t fallbackLoad = UINT32_MAX;
+    ContentProcessManager* cpm = ContentProcessManager::GetSingleton();
     do {
       RefPtr<ContentParent> p = (*contentParents)[currIdx];
       if (!p->IsAlive()) {
@@ -610,13 +611,19 @@ ContentParent::GetNewOrUsedBrowserProcess(bool aForBrowserElement,
         continue;
       }
 
-      if (!fallback) {
-        fallback = p;
-      }
-
       if (p->mOpener == aOpener) {
         return p.forget();
       }
+
+      uint32_t load = UINT32_MAX;
+      if (cpm) {
+        load = cpm->GetTabParentsByProcessId(p->ChildID()).Length();
+      }
+      if (!fallback || load < fallbackLoad) {
+        fallback = p;
+        fallbackLoad = load;
+      }
+
       currIdx = (currIdx + 1) % maxSelectable;
     } while (currIdx != startIdx);
 
