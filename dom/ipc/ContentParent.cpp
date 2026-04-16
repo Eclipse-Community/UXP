@@ -602,14 +602,27 @@ ContentParent::GetNewOrUsedBrowserProcess(bool aForBrowserElement,
                                       static_cast<uint32_t>(maxContentParents));
     uint32_t startIdx = rand() % maxSelectable;
     uint32_t currIdx = startIdx;
+    RefPtr<ContentParent> fallback;
     do {
       RefPtr<ContentParent> p = (*contentParents)[currIdx];
-      NS_ASSERTION(p->IsAlive(), "Non-alive contentparent in sBrowserContntParents?");
+      if (!p->IsAlive()) {
+        currIdx = (currIdx + 1) % maxSelectable;
+        continue;
+      }
+
+      if (!fallback) {
+        fallback = p;
+      }
+
       if (p->mOpener == aOpener) {
         return p.forget();
       }
       currIdx = (currIdx + 1) % maxSelectable;
     } while (currIdx != startIdx);
+
+    if (fallback) {
+      return fallback.forget();
+    }
   }
 
   RefPtr<ContentParent> p = new ContentParent(aOpener, aForBrowserElement);
