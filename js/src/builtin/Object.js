@@ -11,7 +11,7 @@ function ObjectStaticAssign(target, firstSource) {
   if (arguments.length < 2) return to;
 
   // Steps 4-5.
-  for (var i = 1; i < arguments.length; i++) {
+  for (var i = 1, argCount = arguments.length; i < argCount; i++) {
     // Step 5.a.
     var nextSource = arguments[i];
     if (nextSource === null || nextSource === undefined) continue;

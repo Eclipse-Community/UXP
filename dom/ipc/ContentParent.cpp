@@ -617,7 +617,7 @@ ContentParent::GetNewOrUsedBrowserProcess(bool aForBrowserElement,
 
       uint32_t load = UINT32_MAX;
       if (cpm) {
-        load = cpm->GetTabParentsByProcessId(p->ChildID()).Length();
+        load = static_cast<uint32_t>(cpm->GetTabParentCountByProcessId(p->ChildID()));
       }
       if (!fallback || load < fallbackLoad) {
         fallback = p;
@@ -1490,8 +1490,8 @@ ContentParent::NotifyTabDestroying(const TabId& aTabId,
         return;
     }
     ++cp->mNumDestroyingTabs;
-    nsTArray<TabId> tabIds = cpm->GetTabParentsByProcessId(aCpId);
-    if (static_cast<size_t>(cp->mNumDestroyingTabs) != tabIds.Length()) {
+    size_t tabCount = cpm->GetTabParentCountByProcessId(aCpId);
+    if (static_cast<size_t>(cp->mNumDestroyingTabs) != tabCount) {
         return;
     }
 
@@ -1548,7 +1548,7 @@ ContentParent::NotifyTabDestroyed(const TabId& aTabId,
   // because of popup windows.  When the last one closes, shut
   // us down.
   ContentProcessManager* cpm = ContentProcessManager::GetSingleton();
-  nsTArray<TabId> tabIds = cpm->GetTabParentsByProcessId(this->ChildID());
+  size_t tabCount = cpm->GetTabParentCountByProcessId(this->ChildID());
 
   // We might want to keep alive some content processes for testing, because of performance
   // reasons, but we don't want to alter behavior if the pref is not set.
@@ -1557,7 +1557,7 @@ ContentParent::NotifyTabDestroyed(const TabId& aTabId,
   bool shouldKeepAliveAny = !mLargeAllocationProcess && processesToKeepAlive > 0;
   bool shouldKeepAliveThis = shouldKeepAliveAny && static_cast<int32_t>(numberOfParents) <= processesToKeepAlive;
 
-  if (tabIds.Length() == 1 && !shouldKeepAliveThis) {
+  if (tabCount == 1 && !shouldKeepAliveThis) {
     // In the case of normal shutdown, send a shutdown message to child to
     // allow it to perform shutdown tasks.
     MessageLoop::current()->PostTask(NewRunnableMethod

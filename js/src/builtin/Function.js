@@ -206,7 +206,7 @@ function bind_mapArguments() {
     var len = arguments.length;
     var args = std_Array(len);
     for (var i = 0; i < len; i++)
-        _DefineDataProperty(args, i, arguments[i]);
+    args[i] = arguments[i];
     return args;
 }
 
@@ -215,9 +215,9 @@ function bind_invokeFunctionN(fun, thisArg, newTarget, boundArgs, callArgs) {
     var callArgsCount = callArgs.length;
     var args = std_Array(boundArgsCount + callArgsCount);
     for (var i = 0; i < boundArgsCount; i++)
-        _DefineDataProperty(args, i, boundArgs[i]);
+    args[i] = boundArgs[i];
     for (var i = 0; i < callArgsCount; i++)
-        _DefineDataProperty(args, i + boundArgsCount, callArgs[i]);
+    args[i + boundArgsCount] = callArgs[i];
     if (newTarget !== undefined)
         return bind_constructFunctionN(fun, newTarget, args);
     return bind_applyFunctionN(fun, thisArg, args);

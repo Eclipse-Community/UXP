@@ -118,6 +118,13 @@ public:
   GetTabParentsByProcessId(const ContentParentId& aChildCpId);
 
   /**
+   * Get the number of TabParents managed by the given content process.
+   * Returns 0 when the process id is not found.
+   */
+  size_t
+  GetTabParentCountByProcessId(const ContentParentId& aChildCpId);
+
+  /**
    * Get the TabParent by the given content process and tab id.
    * Return nullptr when TabParent couldn't be found via aChildCpId
    * and aChildTabId.

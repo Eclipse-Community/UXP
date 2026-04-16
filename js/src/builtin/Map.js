@@ -45,12 +45,7 @@ function MapForEach(callbackfn, thisArg = undefined) {
         ThrowTypeError(JSMSG_NOT_FUNCTION, DecompileArg(0, callbackfn));
 
     /* Step 6-8. */
-    var entries = callFunction(std_Map_iterator, M);
-    while (true) {
-        var result = callFunction(MapIteratorNext, entries);
-        if (result.done)
-            break;
-        var entry = result.value;
+    for (var entry of allowContentIter(M)) {
         callContentFunction(callbackfn, thisArg, entry[1], entry[0], M);
     }
 }

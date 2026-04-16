@@ -353,5 +353,18 @@ ContentProcessManager::GetTabParentsByProcessId(const ContentParentId& aChildCpI
   return Move(tabIdList);
 }
 
+size_t
+ContentProcessManager::GetTabParentCountByProcessId(const ContentParentId& aChildCpId)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  auto iter = mContentParentMap.find(aChildCpId);
+  if (iter == mContentParentMap.end()) {
+    return 0;
+  }
+
+  return iter->second.mRemoteFrames.size();
+}
+
 } // namespace dom
 } // namespace mozilla

@@ -261,8 +261,19 @@ function CopyDataProperties(target, source, excluded) {
     // Step 4.b.
     var keys = OwnPropertyKeys(source, JSITER_OWNONLY | JSITER_HIDDEN | JSITER_SYMBOLS);
 
+    if (keys.length === 0) {
+        return;
+    }
+
+    // Fast path: if there are no excluded keys, fall back to the unfiltered
+    // copy path and avoid an extra hasOwnProperty check per key.
+    var excludedKeys = OwnPropertyKeys(excluded, JSITER_OWNONLY | JSITER_HIDDEN | JSITER_SYMBOLS);
+    if (excludedKeys.length === 0) {
+        return CopyDataPropertiesUnfiltered(target, source);
+    }
+
     // Step 5.
-    for (var index = 0; index < keys.length; index++) {
+    for (var index = 0, len = keys.length; index < len; index++) {
         var key = keys[index];
 
         // We abbreviate this by calling propertyIsEnumerable which is faster
@@ -293,7 +304,7 @@ function CopyDataPropertiesUnfiltered(target, source) {
     var keys = OwnPropertyKeys(source, JSITER_OWNONLY | JSITER_HIDDEN | JSITER_SYMBOLS);
 
     // Step 5.
-    for (var index = 0; index < keys.length; index++) {
+    for (var index = 0, len = keys.length; index < len; index++) {
         var key = keys[index];
 
         // We abbreviate this by calling propertyIsEnumerable which is faster

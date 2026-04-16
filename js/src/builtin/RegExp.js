@@ -170,7 +170,7 @@ function RegExpMatchSlowPath(rx, S) {
         var matchStr = ToString(result[0]);
 
         // Step 6.e.iii.2.
-        _DefineDataProperty(A, n, matchStr);
+        A[n++] = matchStr;
 
         // Step 6.e.iii.4.
         if (matchStr === "") {
@@ -179,7 +179,6 @@ function RegExpMatchSlowPath(rx, S) {
         }
 
         // Step 6.e.iii.5.
-        n++;
     }
 }
 
@@ -214,7 +213,7 @@ function RegExpGlobalMatchOpt(rx, S, fullUnicode) {
         var matchStr = result[0];
 
         // Step 6.e.iii.2.
-        _DefineDataProperty(A, n, matchStr);
+        A[n++] = matchStr;
 
         // Step 6.e.iii.4.
         if (matchStr === "") {
@@ -224,7 +223,6 @@ function RegExpGlobalMatchOpt(rx, S, fullUnicode) {
         }
 
         // Step 6.e.iii.5.
-        n++;
     }
 }
 
@@ -361,7 +359,7 @@ function RegExpReplaceSlowPath(rx, S, lengthS, replaceValue,
             break;
 
         // Step 11.c.i.
-        _DefineDataProperty(results, nResults++, result);
+        results[nResults++] = result;
 
         // Step 11.c.ii.
         if (!global)
@@ -461,7 +459,7 @@ function RegExpGetComplexReplacement(result, matched, S, position,
     var capturesLength = 0;
 
     // Step 14.k.i (reordered).
-    _DefineDataProperty(captures, capturesLength++, matched);
+    captures[capturesLength++] = matched;
 
     // Step 14.g, 14.i, 14.i.iv.
     for (var n = 1; n <= nCaptures; n++) {
@@ -473,7 +471,7 @@ function RegExpGetComplexReplacement(result, matched, S, position,
             capN = ToString(capN);
 
         // Step 14.i.iii.
-        _DefineDataProperty(captures, capturesLength++, capN);
+        captures[capturesLength++] = capN;
     }
 
     // Step 14.j.
@@ -498,10 +496,10 @@ function RegExpGetComplexReplacement(result, matched, S, position,
             }
         }
         // Steps 14.k.ii-v.
-        _DefineDataProperty(captures, capturesLength++, position);
-        _DefineDataProperty(captures, capturesLength++, S);
+        captures[capturesLength++] = position;
+        captures[capturesLength++] = S;
         if (namedCaptures !== undefined) {
-            _DefineDataProperty(captures, capturesLength++, namedCaptures);
+            captures[capturesLength++] = namedCaptures;
         }
         return ToString(callFunction(std_Function_apply, replaceValue, undefined, captures));
     }
@@ -809,7 +807,7 @@ function RegExpSplit(string, limit) {
             return A;
 
         // Step 17.d.
-        _DefineDataProperty(A, 0, S);
+        A[0] = S;
 
         // Step 17.e.
         return A;
@@ -838,7 +836,8 @@ function RegExpSplit(string, limit) {
                 break;
 
             // Step 19.d.i.
-            e = q + z[0].length;
+            var zLength = z[0].length;
+            e = q + zLength;
         } else {
             // Step 19.a.
             splitter.lastIndex = q;
@@ -863,7 +862,7 @@ function RegExpSplit(string, limit) {
         }
 
         // Steps 19.d.iv.1-3.
-        _DefineDataProperty(A, lengthA, Substring(S, p, q - p));
+        A[lengthA] = Substring(S, p, q - p);
 
         // Step 19.d.iv.4.
         lengthA++;
@@ -884,7 +883,7 @@ function RegExpSplit(string, limit) {
         // Step 19.d.iv.10.
         while (i <= numberOfCaptures) {
             // Steps 19.d.iv.10.a-b.
-            _DefineDataProperty(A, lengthA, z[i]);
+            A[lengthA] = z[i];
 
             // Step 19.d.iv.10.c.
             i++;
@@ -903,9 +902,9 @@ function RegExpSplit(string, limit) {
 
     // Steps 20-22.
     if (p >= size)
-        _DefineDataProperty(A, lengthA, "");
+        A[lengthA] = "";
     else
-        _DefineDataProperty(A, lengthA, Substring(S, p, size - p));
+        A[lengthA] = Substring(S, p, size - p);
 
     // Step 23.
     return A;

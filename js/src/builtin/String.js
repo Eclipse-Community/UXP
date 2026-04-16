@@ -270,6 +270,7 @@ function String_replaceAll(searchValue, replaceValue) {
 
     // Step 7.
     var searchLength = searchString.length;
+    var stringLength = string.length;
 
     // Step 8.
     var advanceBy = std_Math_max(1, searchLength);
@@ -318,9 +319,9 @@ function String_replaceAll(searchValue, replaceValue) {
     }
 
     // Step 15.
-    if (endOfLastMatch < string.length) {
+    if (endOfLastMatch < stringLength) {
         // Step 15.a.
-        result += Substring(string, endOfLastMatch, string.length - endOfLastMatch);
+        result += Substring(string, endOfLastMatch, stringLength - endOfLastMatch);
     }
 
     // Step 16.
@@ -401,11 +402,13 @@ function String_split(separator, limit) {
     // Step 1.
     RequireObjectCoercible(this);
 
+    var stringProtoNoSplit = StringProtoHasNoSplit();
+
     // Optimized path for string.split(string), especially when both strings
     // are constants.  Following sequence of if's cannot be put together in
     // order that IonMonkey sees the constant if present (bug 1246141).
     if (typeof this === "string") {
-        if (StringProtoHasNoSplit()) {
+        if (stringProtoNoSplit) {
             if (typeof separator === "string") {
                 if (limit === undefined) {
                     // inlineConstantStringSplitString needs both arguments to
@@ -417,7 +420,7 @@ function String_split(separator, limit) {
     }
 
     // Step 2.
-    if (!(typeof separator == "string" && StringProtoHasNoSplit()) &&
+    if (!(typeof separator == "string" && stringProtoNoSplit) &&
         separator !== undefined && separator !== null)
     {
         // Step 2.a.

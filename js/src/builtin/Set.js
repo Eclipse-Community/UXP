@@ -39,12 +39,7 @@ function SetForEach(callbackfn, thisArg = undefined) {
         ThrowTypeError(JSMSG_NOT_FUNCTION, DecompileArg(0, callbackfn));
 
     /* Step 7-8. */
-    var values = callFunction(std_Set_iterator, S);
-    while (true) {
-        var result = callFunction(SetIteratorNext, values);
-        if (result.done)
-            break;
-        var value = result.value;
+    for (var value of allowContentIter(S)) {
         callContentFunction(callbackfn, thisArg, value, value, S);
     }
 }

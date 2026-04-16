@@ -38,22 +38,18 @@ OptimizationInfo::initNormalOptimizationInfo()
 
     registerAllocator_ = RegisterAllocator_Backtracking;
 
-    inlineMaxBytecodePerCallSiteMainThread_ = 550;
-    inlineMaxBytecodePerCallSiteOffThread_ = 1100;
-    inlineMaxCalleeInlinedBytecodeLength_ = 3550;
-    inlineMaxTotalBytecodeLength_ = 85000;
-    inliningMaxCallerBytecodeLength_ = 1600;
-    maxInlineDepth_ = 3;
+    inlineMaxBytecodePerCallSiteMainThread_ = 900;
+    inlineMaxBytecodePerCallSiteOffThread_ = 1800;
+    inlineMaxCalleeInlinedBytecodeLength_ = 6000;
+    inlineMaxTotalBytecodeLength_ = 140000;
+    inliningMaxCallerBytecodeLength_ = 2600;
+    maxInlineDepth_ = 4;
     scalarReplacement_ = true;
-    smallFunctionMaxInlineDepth_ = 10;
-    compilerWarmUpThreshold_ = CompilerWarmupThreshold;
-    // Compile small helper functions somewhat sooner, but keep this conservative
-    // to avoid startup regressions on large script-heavy applications.
-    compilerSmallFunctionWarmUpThreshold_ = 36;
-    // Keep inlining warm-up close to default to avoid excessive early
-    // compilation work during page startup.
-    inliningWarmUpThresholdFactor_ = 0.10;
-    inliningRecompileThresholdFactor_ = 4;
+    smallFunctionMaxInlineDepth_ = 16;
+    compilerWarmUpThreshold_ = 250;
+    compilerSmallFunctionWarmUpThreshold_ = 12;
+    inliningWarmUpThresholdFactor_ = 0.03;
+    inliningRecompileThresholdFactor_ = 2;
 }
 
 void
@@ -103,16 +99,16 @@ OptimizationInfo::compilerWarmUpThreshold(JSScript* script, jsbytecode* pc) cons
         // Avoid pathological thresholds on very large scripts: large warm-up
         // counts delay optimization too much for hot UI/update code.
         double ratio = script->length() / (double) MAX_MAIN_THREAD_SCRIPT_SIZE;
-        if (ratio > 4.0)
-            ratio = 4.0;
+        if (ratio > 2.0)
+            ratio = 2.0;
         warmUpThreshold *= ratio;
     }
 
     uint32_t numLocalsAndArgs = NumLocalsAndArgs(script);
     if (numLocalsAndArgs > MAX_MAIN_THREAD_LOCALS_AND_ARGS) {
         double ratio = numLocalsAndArgs / (double) MAX_MAIN_THREAD_LOCALS_AND_ARGS;
-        if (ratio > 4.0)
-            ratio = 4.0;
+        if (ratio > 2.0)
+            ratio = 2.0;
         warmUpThreshold *= ratio;
     }
 
@@ -121,8 +117,8 @@ OptimizationInfo::compilerWarmUpThreshold(JSScript* script, jsbytecode* pc) cons
     // large app startup latency (for example, video sites with many wrappers).
     if (pc && script->length() <= 400 && numLocalsAndArgs <= 48) {
         warmUpThreshold = (warmUpThreshold * 4) / 5;
-        if (warmUpThreshold < 40)
-            warmUpThreshold = 40;
+        if (warmUpThreshold < 20)
+            warmUpThreshold = 20;
     }
 
     if (!pc || JitOptions.eagerCompilation)
@@ -139,13 +135,13 @@ OptimizationInfo::compilerWarmUpThreshold(JSScript* script, jsbytecode* pc) cons
     // script-size-aware loop penalty.
     uint32_t perDepthPenalty;
     if (JitOptions.isSmallFunction(script)) {
-        perDepthPenalty = 25;
+        perDepthPenalty = 10;
     } else {
         perDepthPenalty = warmUpThreshold / 8;
-        if (perDepthPenalty < 50)
-            perDepthPenalty = 50;
-        if (perDepthPenalty > 200)
-            perDepthPenalty = 200;
+        if (perDepthPenalty < 20)
+            perDepthPenalty = 20;
+        if (perDepthPenalty > 80)
+            perDepthPenalty = 80;
     }
     return warmUpThreshold + loopDepth * perDepthPenalty;
 }
