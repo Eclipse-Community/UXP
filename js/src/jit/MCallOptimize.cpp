@@ -710,7 +710,7 @@ IonBuilder::inlineArrayPush(CallInfo& callInfo)
     if (!thisTypes)
         return InliningStatus_NotInlined;
     const Class* clasp = thisTypes->getKnownClass(constraints());
-    if (clasp != &ArrayObject::class_)
+    if (clasp != &ArrayObject::class_ && clasp != &UnboxedArrayObject::class_)
         return InliningStatus_NotInlined;
 
     if (ElementAccessHasExtraIndexedProperty(this, obj)) {
@@ -1471,6 +1471,18 @@ IonBuilder::inlineStringSplitString(CallInfo& callInfo)
     MDefinition* strArg = callInfo.getArg(0);
     MDefinition* sepArg = callInfo.getArg(1);
 
+    if (strArg->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), strArg);
+        current->add(toString);
+        strArg = toString;
+    }
+
+    if (sepArg->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), sepArg);
+        current->add(toString);
+        sepArg = toString;
+    }
+
     if (strArg->type() != MIRType::String)
         return InliningStatus_NotInlined;
 
@@ -1689,7 +1701,8 @@ IonBuilder::inlineStrCharAt(CallInfo& callInfo)
 
     if (getInlineReturnType() != MIRType::String)
         return InliningStatus_NotInlined;
-    if (callInfo.thisArg()->type() != MIRType::String)
+    if (callInfo.thisArg()->type() != MIRType::String &&
+        callInfo.thisArg()->type() != MIRType::Value)
         return InliningStatus_NotInlined;
     MIRType argType = callInfo.getArg(0)->type();
     if (argType != MIRType::Int32 && argType != MIRType::Double)
@@ -1697,16 +1710,23 @@ IonBuilder::inlineStrCharAt(CallInfo& callInfo)
 
     callInfo.setImplicitlyUsedUnchecked();
 
+    MDefinition* str = callInfo.thisArg();
+    if (str->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), str);
+        current->add(toString);
+        str = toString;
+    }
+
     MInstruction* index = MToInt32::New(alloc(), callInfo.getArg(0));
     current->add(index);
 
-    MStringLength* length = MStringLength::New(alloc(), callInfo.thisArg());
+    MStringLength* length = MStringLength::New(alloc(), str);
     current->add(length);
 
     index = addBoundsCheck(index, length);
 
     // String.charAt(x) = String.fromCharCode(String.charCodeAt(x))
-    MCharCodeAt* charCode = MCharCodeAt::New(alloc(), callInfo.thisArg(), index);
+    MCharCodeAt* charCode = MCharCodeAt::New(alloc(), str, index);
     current->add(charCode);
 
     MFromCharCode* string = MFromCharCode::New(alloc(), charCode);
@@ -2027,6 +2047,24 @@ IonBuilder::inlineStringReplaceString(CallInfo& callInfo)
     MDefinition* strArg = callInfo.getArg(0);
     MDefinition* patArg = callInfo.getArg(1);
     MDefinition* replArg = callInfo.getArg(2);
+
+    if (strArg->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), strArg);
+        current->add(toString);
+        strArg = toString;
+    }
+
+    if (patArg->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), patArg);
+        current->add(toString);
+        patArg = toString;
+    }
+
+    if (replArg->type() == MIRType::Value) {
+        MToString* toString = MToString::New(alloc(), replArg);
+        current->add(toString);
+        replArg = toString;
+    }
 
     if (strArg->type() != MIRType::String)
         return InliningStatus_NotInlined;

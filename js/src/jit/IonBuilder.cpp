@@ -5724,9 +5724,14 @@ IonBuilder::makeInliningDecision(JSObject* targetArg, CallInfo& callInfo)
     // Callee must have been called a few times to have somewhat stable
     // type information, except for definite properties analysis,
     // as the caller has not run yet.
+    // Modern engines prioritize tiny wrapper/helper functions because they
+    // dominate framework-heavy call stacks. Allow these tiny scripts to inline
+    // earlier to reduce call overhead without broadly lowering warm-up gates.
+    bool tinyCallee = targetScript->length() <= 96;
     if (targetScript->getWarmUpCount() < optimizationInfo().inliningWarmUpThreshold() &&
         !targetScript->baselineScript()->ionCompiledOrInlined() &&
-        info().analysisMode() != Analysis_DefiniteProperties)
+        info().analysisMode() != Analysis_DefiniteProperties &&
+        !tinyCallee)
     {
         trackOptimizationOutcome(TrackedOutcome::CantInlineNotHot);
         JitSpew(JitSpew_Inlining, "Cannot inline %s:%" PRIuSIZE ": callee is insufficiently hot.",
@@ -5861,7 +5866,16 @@ IonBuilder::selectInliningTargets(const ObjectVector& targets, CallInfo& callInf
         if (target->is<JSFunction>()) {
             // Enforce a maximum inlined bytecode limit at the callsite.
             if (inlineable && target->as<JSFunction>().isInterpreted()) {
-                totalSize += target->as<JSFunction>().nonLazyScript()->length();
+                size_t calleeLength = target->as<JSFunction>().nonLazyScript()->length();
+
+                // Tiny wrappers are prevalent in framework-generated code.
+                // Charge a discounted budget for these helpers so they can
+                // inline without crowding out larger meaningful inlines.
+                if (calleeLength <= 96)
+                    totalSize += (calleeLength + 1) / 2;
+                else
+                    totalSize += calleeLength;
+
                 bool offThread = options.offThreadCompilationAvailable();
                 if (totalSize > optimizationInfo().inlineMaxBytecodePerCallSite(offThread))
                     inlineable = false;
@@ -7045,7 +7059,9 @@ IonBuilder::jsop_call(uint32_t argc, bool constructing, bool ignoresReturnValue)
     // Acquire known call target if existent.
     ObjectVector targets(alloc());
     TemporaryTypeSet* calleeTypes = current->peek(calleeDepth)->resultTypeSet();
-    if (calleeTypes && !getPolyCallTargets(calleeTypes, constructing, targets, 4))
+    // Explore a wider polymorphic target set; callsite bytecode budget and
+    // per-target inlining checks still gate the actual inlining work.
+    if (calleeTypes && !getPolyCallTargets(calleeTypes, constructing, targets, 8))
         return false;
 
     CallInfo callInfo(alloc(), constructing, ignoresReturnValue);

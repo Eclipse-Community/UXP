@@ -87,7 +87,7 @@ DefaultJitOptions::DefaultJitOptions()
     SET_DEFAULT(disableEdgeCaseAnalysis, false);
 
     // Toggles whether to use flow sensitive Alias Analysis.
-    SET_DEFAULT(disableFlowAA, false);
+    SET_DEFAULT(disableFlowAA, true);
 
     // Toggle whether global value numbering is globally disabled.
     SET_DEFAULT(disableGvn, false);
@@ -99,7 +99,7 @@ DefaultJitOptions::DefaultJitOptions()
     SET_DEFAULT(disableLicm, false);
 
     // Toggles whether Loop Unrolling is globally disabled.
-    SET_DEFAULT(disableLoopUnrolling, false);
+    SET_DEFAULT(disableLoopUnrolling, true);
 
     // Toggle whether Profile Guided Optimization is globally disabled.
     SET_DEFAULT(disablePgo, false);
@@ -131,7 +131,7 @@ DefaultJitOptions::DefaultJitOptions()
     #endif
 
     // Toggles whether sink code motion is globally disabled.
-    SET_DEFAULT(disableSink, false);
+    SET_DEFAULT(disableSink, true);
 
     // Whether functions are compiled immediately.
     SET_DEFAULT(eagerCompilation, false);
@@ -150,7 +150,7 @@ DefaultJitOptions::DefaultJitOptions()
 
     // How many invocations or loop iterations are needed before functions
     // are compiled with the baseline compiler.
-    SET_DEFAULT(baselineWarmUpThreshold, 3);
+    SET_DEFAULT(baselineWarmUpThreshold, 8);
 
     // Number of exception bailouts (resuming into catch/finally block) before
     // we invalidate and forbid Ion compilation.
@@ -168,7 +168,7 @@ DefaultJitOptions::DefaultJitOptions()
     SET_DEFAULT(osrPcMismatchesBeforeRecompile, 6000);
 
     // The bytecode length limit for small function.
-    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 512);
+    SET_DEFAULT(smallFunctionMaxBytecodeLength_, 384);
 
     // An artificial testing limit for the maximum supported offset of
     // pc-relative jump and call instructions.
@@ -218,7 +218,7 @@ DefaultJitOptions::DefaultJitOptions()
     }
 
     // Toggles whether unboxed plain objects can be created by the VM.
-    SET_DEFAULT(disableUnboxedObjects, false);
+    SET_DEFAULT(disableUnboxedObjects, true);
 
     // Test whether Atomics are allowed in asm.js code.
     SET_DEFAULT(asmJSAtomicsEnable, false);
