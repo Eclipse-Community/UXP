@@ -56,7 +56,7 @@ pref("browser.cache.disk.smart_size.enabled", true);
 // Which max value should we use for smart-sizing?
 pref("browser.cache.disk.smart_size.use_old_max", true);
 // Size (in KB) explicitly set by the user. Used when smart_size.enabled == false
-pref("browser.cache.disk.capacity",         256000);
+pref("browser.cache.disk.capacity",         2097152);
 // When smartsizing is disabled we could potentially fill all disk space by
 // cache data when the disk capacity is not set correctly. To avoid that we
 // check the free space every time we write some data to the cache. The free
@@ -67,13 +67,13 @@ pref("browser.cache.disk.free_space_soft_limit", 5120); // 5MB
 pref("browser.cache.disk.free_space_hard_limit", 1024); // 1MB
 // Max-size (in KB) for entries in disk cache. Set to -1 for no limit.
 // (Note: entries bigger than 1/8 of disk-cache are never cached)
-pref("browser.cache.disk.max_entry_size",    51200);  // 50 MB
+pref("browser.cache.disk.max_entry_size",   102400);  // 100 MB
 pref("browser.cache.memory.enable",         true);
 // -1 = determine dynamically, 0 = none, n = memory capacity in kilobytes
 //pref("browser.cache.memory.capacity",     -1);
 // Max-size (in KB) for entries in memory cache. Set to -1 for no limit.
 // (Note: entries bigger than than 90% of the mem-cache are never cached)
-pref("browser.cache.memory.max_entry_size",  5120);
+pref("browser.cache.memory.max_entry_size",  8192);
 // Memory limit (in kB) for new cache data not yet written to disk. Writes to
 // the cache are buffered and written to disk on background with low priority.
 // With a slow persistent storage these buffers may grow when data is coming
@@ -82,16 +82,16 @@ pref("browser.cache.memory.max_entry_size",  5120);
 // (priority) like html, css, fonts and js, and one for other data like images,
 // video, etc.
 // Note: 0 means no limit.
-pref("browser.cache.disk.max_chunks_memory_usage", 10240);
-pref("browser.cache.disk.max_priority_chunks_memory_usage", 10240);
+pref("browser.cache.disk.max_chunks_memory_usage", 20480);
+pref("browser.cache.disk.max_priority_chunks_memory_usage", 20480);
 
 pref("browser.cache.disk_cache_ssl",        true);
 // 0 = once-per-session, 1 = each-time, 2 = never, 3 = when-appropriate/automatically
 pref("browser.cache.check_doc_frequency",   3);
 // Limit of recent metadata we keep in memory for faster access, in Kb
-pref("browser.cache.disk.metadata_memory_limit", 250); // 0.25 MB
+pref("browser.cache.disk.metadata_memory_limit", 1024); // 1 MB
 // The number of chunks we preload ahead of read.  One chunk has currently 256kB.
-pref("browser.cache.disk.preload_chunk_count", 4); // 1 MB of read ahead
+pref("browser.cache.disk.preload_chunk_count", 8); // 2 MB of read ahead
 // The half life used to re-compute cache entries frecency in hours.
 pref("browser.cache.frecency_half_life_hours", 6);
 
@@ -248,7 +248,7 @@ pref("dom.compartment_per_addon", true);
 
 // Fastback caching - if this pref is negative, then we calculate the number
 // of content viewers to cache based on the amount of available memory.
-pref("browser.sessionhistory.max_total_viewers", -1);
+pref("browser.sessionhistory.max_total_viewers", 8);
 
 // Whether to store 'about:newtab' in the session history, disabled by default.
 // See https://github.com/MoonchildProductions/UXP/issues/719
@@ -1162,9 +1162,9 @@ pref("dom.send_after_paint_to_content", false);
 pref("dom.link.disabled_attribute.enabled", true);
 
 // Timeout clamp in ms for timeouts we clamp
-pref("dom.min_timeout_value", 4);
+pref("dom.min_timeout_value", 2);
 // And for background windows
-pref("dom.min_background_timeout_value", 1000);
+pref("dom.min_background_timeout_value", 1500);
 
 // Don't use new input types
 pref("dom.experimental_forms", false);
@@ -4289,7 +4289,7 @@ pref("image.animated.decode-on-demand.batch-size", 6);
 pref("image.animated.resume-from-last-displayed", true);
 
 // The maximum size, in bytes, of the decoded images we cache
-pref("image.cache.size", 20971520);
+pref("image.cache.size", 67108864);
 
 // A weight, from 0-1000, to place on time when comparing to size.
 // Size is given a weight of 1000 - timeweight.
@@ -4297,7 +4297,7 @@ pref("image.cache.timeweight", 650);
 
 // Time in seconds before unproxied entries in the in-memory image cache are
 // considered for eviction by the expiration tracker.
-pref("image.cache.entry_timeout_seconds", 15);
+pref("image.cache.entry_timeout_seconds", 30);
 
 // Decode all images automatically on load, ignoring our normal heuristics.
 pref("image.decode-immediately.enabled", false);
@@ -4683,7 +4683,7 @@ pref("dom.idle-observers-api.enabled", true);
 
 // Time limit, in milliseconds, for EventStateManager::IsHandlingUserInput().
 // Used to detect long running handlers of user-generated events.
-pref("dom.event.handling-user-input-time-limit", 1000);
+pref("dom.event.handling-user-input-time-limit", 500);
 
 // Whether we should layerize all animated images (if otherwise possible).
 pref("layout.animated-image-layers.enabled", false);
