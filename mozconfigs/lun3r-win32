@@ -17,8 +17,8 @@ mk_add_options MOZ_MAKE_FLAGS="-j16"
 # x86 build
 ac_add_options --host=i686-pc-mingw32
 ac_add_options --target=i686-pc-mingw32
-WIN32_REDIST_DIR=$VCINSTALLDIR/Redist/MSVC/14.16.27012/x86
-WIN_UCRT_REDIST_DIR=$WINDOWSSDKDIR/Redist/10.0.19041.0/ucrt/DLLs/r86
+WIN32_REDIST_DIR="${VCINSTALLDIR}/Redist/x86/Microsoft.VC141.CRT"
+WIN_UCRT_REDIST_DIR="${WINDOWSSDKDIR}/Redist/${UCRTVER}/ucrt/DLLs/x86"
 
 # Build only Lun3r
 ac_add_options --enable-application=palemoon
@@ -39,7 +39,7 @@ ac_add_options --enable-devtools
 #ac_add_options --enable-install-strip
 ac_add_options --enable-jemalloc
 ac_add_options --enable-js-lto
-ac_add_options --enable-optimize="-O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp -std:c++17 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -wd5043"
+ac_add_options --enable-optimize="-O2 -Ob2ity- -GS- -GFAT -Qpar -Qfast_transcendentals -openmp -std:c++17 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -wd5043"
 ac_add_options --enable-phoenix-extensions
 ac_add_options --enable-release
 ac_add_options --enable-shared-js
