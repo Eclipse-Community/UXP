@@ -183,7 +183,6 @@ case "$target" in
             _CC_SUITE=14
             MSVS_VERSION=2015
             MSVC_C_RUNTIME_DLL=vcruntime140.dll
-            MSVC_CON_RUNTIME_DLL=concrt140.dll
             MSVC_CXX_RUNTIME_DLL=msvcp140.dll
 
             MOZ_CHECK_HEADER(dia2.h, MSVC_HAS_DIA_SDK=1)
@@ -234,7 +233,6 @@ case "$target" in
         AC_SUBST(MSVS_VERSION)
         AC_SUBST(MSVC_HAS_DIA_SDK)
         AC_SUBST(MSVC_C_RUNTIME_DLL)
-        AC_SUBST(MSVC_CON_RUNTIME_DLL)
         AC_SUBST(MSVC_CXX_RUNTIME_DLL)
 
         AC_DEFINE(HAVE_SEH_EXCEPTIONS)
