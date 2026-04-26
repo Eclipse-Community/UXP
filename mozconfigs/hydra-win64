@@ -39,7 +39,7 @@ ac_add_options --enable-devtools
 #ac_add_options --enable-install-strip
 ac_add_options --enable-jemalloc
 ac_add_options --enable-js-lto
-ac_add_options --enable-optimize="-O2 -Ob2ity- -GS- -GFAT -Qpar -Qfast_transcendentals -openmp -std:c++17 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -wd5043"
+ac_add_options --enable-optimize="-O2 -Ob2ity -GS- -GFAT -Qpar -Qfast_transcendentals -openmp -std:c++17 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -wd5043"
 ac_add_options --enable-phoenix-extensions
 ac_add_options --enable-release
 ac_add_options --enable-shared-js
