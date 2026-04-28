@@ -37,6 +37,7 @@ DIRS += [
     'osfile',
     'parentalcontrols',
     'passwordmgr',
+    'pdfjs',
     'perf',
     'perfmonitoring',
     'places',
