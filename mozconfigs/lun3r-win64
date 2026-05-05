@@ -83,5 +83,6 @@ ac_add_options MOZ_LTO=1
 export CFLAGS="-O2"
 export CPPFLAGS="-O2"
 export CXXFLAGS="-O2"
+#export LDFLAGS="/opt:REF,ICF"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
 export VERBOSE=1
