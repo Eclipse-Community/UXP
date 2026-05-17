@@ -307,6 +307,11 @@
 @RESPATH@/chrome/pippki@JAREXT@
 @RESPATH@/chrome/pippki.manifest
 
+; [pdfjs]
+;
+@RESPATH@/chrome/pdfjs.manifest
+@RESPATH@/chrome/pdfjs/*
+
 ; [Updater]
 ;
 #ifdef MOZ_UPDATER
