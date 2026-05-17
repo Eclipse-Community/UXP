@@ -70,7 +70,6 @@ browser/components/sessionstore/**
 browser/components/tabview/**
 # generated files in cld2
 browser/components/translation/cld2/cld-worker.js
-browser/extensions/pdfjs/**
 # generated or library files in pocket
 browser/extensions/pocket/content/panels/js/tmpl.js
 browser/extensions/pocket/content/panels/js/vendor/**
@@ -205,6 +204,9 @@ toolkit/modules/tests/xpcshell/test_task.js
 
 # Not yet updated
 toolkit/components/osfile/**
+
+# Built files
+toolkit/components/pdfjs/**
 
 # External code:
 toolkit/components/microformats/test/**
