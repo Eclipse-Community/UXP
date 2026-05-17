@@ -1343,6 +1343,18 @@ pref("javascript.options.streams", true);
 pref("advanced.mailftp",                    false);
 pref("image.animation_mode",                "normal");
 
+// Completely disable pdf.js as an option to preview pdfs within firefox.
+// Note: if this is not disabled it does not necessarily mean pdf.js is the pdf
+// handler just that it is an option.
+pref("pdfjs.disabled", false);
+// Used by pdf.js to know the first time firefox is run with it installed so it
+// can become the default pdf viewer.
+pref("pdfjs.firstRun", true);
+// The values of preferredAction and alwaysAskBeforeHandling before pdf.js
+// became the default.
+pref("pdfjs.previousHandler.preferredAction", 0);
+pref("pdfjs.previousHandler.alwaysAskBeforeHandling", false);
+
 // Same-origin policy for all URIs.
 pref("security.same_origin_policy.enabled", true);
 
