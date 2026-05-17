@@ -4,9 +4,6 @@
 
 include('/toolkit/toolkit.mozbuild')
 
-if CONFIG['MOZ_EXTENSIONS']:
-    DIRS += ['/extensions']
-
 DIRS += ['/%s' % CONFIG['MOZ_BRANDING_DIRECTORY']]
 
 # Never add dirs after the browser root because they apparently won't
