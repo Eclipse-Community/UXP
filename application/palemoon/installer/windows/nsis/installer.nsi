@@ -659,70 +659,13 @@ Section "-InstallEndCleanup"
 SectionEnd
 
 ################################################################################
-# Install Abort Survey Functions
+# Install Abort Functions
 
 Function CustomAbort
-  ${If} "${AB_CD}" == "en-US"
-  ${AndIf} "$PageName" != ""
-  ${AndIf} ${FileExists} "$EXEDIR\core\distribution\distribution.ini"
-    ReadINIStr $0 "$EXEDIR\core\distribution\distribution.ini" "Global" "about"
-    ClearErrors
-    ${WordFind} "$0" "Funnelcake" "E#" $1
-    ${Unless} ${Errors}
-      ; Yes = fill out the survey and exit, No = don't fill out survey and exit,
-      ; Cancel = don't exit.
-      MessageBox MB_YESNO|MB_ICONEXCLAMATION \
-                 "Would you like to tell us why you are canceling this installation?" \
-                 IDYes +1 IDNO CustomAbort_finish
-      ${If} "$PageName" == "Welcome"
-          GetFunctionAddress $0 AbortSurveyWelcome
-      ${ElseIf} "$PageName" == "Options"
-          GetFunctionAddress $0 AbortSurveyOptions
-      ${ElseIf} "$PageName" == "Directory"
-          GetFunctionAddress $0 AbortSurveyDirectory
-      ${ElseIf} "$PageName" == "Shortcuts"
-          GetFunctionAddress $0 AbortSurveyShortcuts
-      ${ElseIf} "$PageName" == "Summary"
-          GetFunctionAddress $0 AbortSurveySummary
-      ${EndIf}
-      ClearErrors
-      ${GetParameters} $1
-      ${GetOptions} "$1" "/UAC:" $2
-      ${If} ${Errors}
-        Call $0
-      ${Else}
-        UAC::ExecCodeSegment $0
-      ${EndIf}
-
-      CustomAbort_finish:
-      Return
-    ${EndUnless}
-  ${EndIf}
-
   MessageBox MB_YESNO|MB_ICONEXCLAMATION "$(MOZ_MUI_TEXT_ABORTWARNING)" \
              IDYES +1 IDNO +2
   Return
   Abort
-FunctionEnd
-
-Function AbortSurveyWelcome
-  ExecShell "open" "${AbortSurveyURL}step1"
-FunctionEnd
-
-Function AbortSurveyOptions
-  ExecShell "open" "${AbortSurveyURL}step2"
-FunctionEnd
-
-Function AbortSurveyDirectory
-  ExecShell "open" "${AbortSurveyURL}step3"
-FunctionEnd
-
-Function AbortSurveyShortcuts
-  ExecShell "open" "${AbortSurveyURL}step4"
-FunctionEnd
-
-Function AbortSurveySummary
-  ExecShell "open" "${AbortSurveyURL}step5"
 FunctionEnd
 
 ################################################################################
@@ -867,7 +810,7 @@ Function leaveOptions
   ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 3" "State"
   StrCmp $R0 "1" +1 +2
   StrCpy $InstallType ${INSTALLTYPE_CUSTOM}
-  ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 6" "State"
+  ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 4" "State"
   StrCmp $R0 "1" +1 +2
   StrCpy $InstallType ${INSTALLTYPE_PORTABLE}
   ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 7" "State"
@@ -878,6 +821,12 @@ Function leaveOptions
 
   ${If} $InstallType == ${INSTALLTYPE_BASIC}
     Call CheckExistingInstall
+  ${EndIf}
+  ${If} $InstallType == ${INSTALLTYPE_PORTABLE}
+    ${GetProcessInfo} 0 $0 $1 $0 $0 $0
+    ${GetProcessInfo} $1 $0 $0 $0 $0 $1
+    ${GetParent} "$1" $1
+    StrCpy $INSTDIR "$1\${BrandShortName}"
   ${EndIf}
 FunctionEnd
 
@@ -1115,27 +1064,27 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Bottom "65"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" State  "0"
 
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Type   "RadioButton"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Text   "$(OPTION_PORTABLE_RADIO)"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Left   "0"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Top    "85"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Bottom "95"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" State  "0"
-
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Type   "label"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Text   "$(OPTION_STANDARD_DESC)"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Left   "15"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Type   "RadioButton"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Text   "$(OPTION_PORTABLE_RADIO)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Left   "0"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Top    "37"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Bottom "57"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Top    "85"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Bottom "95"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" State  "0"
 
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Type   "label"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Text   "$(OPTION_CUSTOM_DESC)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Text   "$(OPTION_STANDARD_DESC)"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Left   "15"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "67"
-  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "87"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "37"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "57"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Type   "label"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Text   "$(OPTION_CUSTOM_DESC)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Left   "15"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Top    "67"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Bottom "87"
 
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Type   "checkbox"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 7" Text   "$(OPTION_PORTABLE_DESC)"
