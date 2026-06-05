@@ -826,7 +826,7 @@ Function leaveOptions
     ${GetProcessInfo} 0 $0 $1 $0 $0 $0
     ${GetProcessInfo} $1 $0 $0 $0 $0 $1
     ${GetParent} "$1" $1
-    StrCpy $INSTDIR "$1\${BrandShortName}"
+    StrCpy $INSTDIR "$1\${BrandFullName}"
   ${EndIf}
 FunctionEnd
 
