@@ -2788,7 +2788,7 @@ pref("dom.animations-api.core.enabled", true);
 pref("dom.animations-api.timelines.enabled", false);
 pref("dom.animations-api.implicit-keyframes.enabled", false);
 pref("dom.animations-api.compositing.enabled", false);
-pref("dom.animations-api.getAnimations.enabled", false);
+pref("dom.animations-api.getAnimations.enabled", true);
 
 // Is support for the Element.animate() function (a subset of the Web Animations
 // API) enabled?
