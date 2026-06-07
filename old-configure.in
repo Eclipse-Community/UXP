@@ -185,7 +185,6 @@ case "$target" in
             MSVC_C_RUNTIME_DLL=vcruntime*.dll
             MSVC_CMP_RUNTIME_DLL=vcomp140.dll
             MSVC_CXX_RUNTIME_DLL=msvcp140.dll
-            MSVC_CON_RUNTIME_DLL=concrt140.dll
 
             MOZ_CHECK_HEADER(dia2.h, MSVC_HAS_DIA_SDK=1)
             if test -n "$MSVC_HAS_DIA_SDK"; then
@@ -237,7 +236,6 @@ case "$target" in
         AC_SUBST(MSVC_C_RUNTIME_DLL)
         AC_SUBST(MSVC_CMP_RUNTIME_DLL)
         AC_SUBST(MSVC_CXX_RUNTIME_DLL)
-        AC_SUBST(MSVC_CON_RUNTIME_DLL)
 
         AC_DEFINE(HAVE_SEH_EXCEPTIONS)
 
