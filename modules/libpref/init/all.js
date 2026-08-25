@@ -631,7 +631,7 @@ pref("layout.event-regions.enabled", false);
 // gfx/layers/apz/src/AsyncPanZoomController.cpp.
 pref("apz.allow_checkerboarding", true);
 pref("apz.allow_immediate_handoff", true);
-pref("apz.allow_zooming", false);
+pref("apz.allow_zooming", true);
 
 // Whether to lock touch scrolling to one axis at a time
 // 0 = FREE (No locking at all)
@@ -643,7 +643,7 @@ pref("apz.axis_lock.breakout_threshold", "0.03125");  // 1/32 inches
 pref("apz.axis_lock.breakout_angle", "0.3926991");    // PI / 8 (22.5 degrees)
 pref("apz.axis_lock.direct_pan_angle", "1.047197");   // PI / 3 (60 degrees)
 pref("apz.content_response_timeout", 400);
-pref("apz.drag.enabled", false);
+pref("apz.drag.enabled", true);
 pref("apz.danger_zone_x", 50);
 pref("apz.danger_zone_y", 100);
 pref("apz.disable_for_scroll_linked_effects", false);
@@ -702,7 +702,7 @@ pref("apz.zoom_animation_duration_ms", 250);
 pref("apz.scale_repaint_delay_ms", 500);
 
 #if !defined(MOZ_WIDGET_UIKIT)
-pref("apz.desktop.enabled", false);
+pref("apz.desktop.enabled", true);
 #endif
 
 #ifdef XP_MACOSX
