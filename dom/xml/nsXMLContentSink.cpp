@@ -295,11 +295,11 @@ nsXMLContentSink::DidBuildModel(bool aTerminated)
     }
 
     mXSLTProcessor->SetSourceContentModel(mDocument, mDocumentChildren);
+    mDocumentChildren.Clear();
     // Since the processor now holds a reference to us we drop our reference
     // to it to avoid owning cycles
     mXSLTProcessor = nullptr;
-  }
-  else {
+  } else {
     // Kick off layout for non-XSLT transformed documents.
 
     // Check if we want to prettyprint
@@ -881,6 +881,12 @@ nsXMLContentSink::SetDocElement(int32_t aNameSpaceID,
 
   if (!mDocumentChildren.IsEmpty()) {
     for (nsIContent* child : mDocumentChildren) {
+      if (MOZ_UNLIKELY(child->GetParentNode())) {
+        child->Remove();
+        if (MOZ_UNLIKELY(child->GetParentNode())) {
+          return false;
+        }
+      }
       mDocument->AppendChildTo(child, false);
     }
     mDocumentChildren.Clear();
@@ -991,6 +997,12 @@ nsXMLContentSink::HandleStartElement(const char16_t *aName,
     if (!SetDocElement(nameSpaceID, localName, content) && appendContent) {
       NS_ENSURE_TRUE(parent, NS_ERROR_UNEXPECTED);
 
+      if (MOZ_UNLIKELY(content->GetParentNode())) {
+        content->Remove();
+        if (MOZ_UNLIKELY(content->GetParentNode())) {
+          return NS_ERROR_UNEXPECTED;
+        }
+      }
       parent->AppendChildTo(content, false);
     }
   }

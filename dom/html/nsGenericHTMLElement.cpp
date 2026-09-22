@@ -1487,8 +1487,15 @@ nsGenericHTMLElement::MapImageSizeAttributesInto(const nsMappedAttributes* aAttr
     }
 
     if (w && h && *w != 0 && *h != 0) {
-      nsCSSValue* aspect_ratio = aData->ValueForAspectRatio();
-      aspect_ratio->SetFloatValue((float(*w) / float(*h)), eCSSUnit_Number);
+      nsCSSValue width;
+      width.SetFloatValue(float(*w), eCSSUnit_Number);
+      nsCSSValue height;
+      height.SetFloatValue(float(*h), eCSSUnit_Number);
+      nsCSSValue ratio;
+      ratio.SetPairValue(width, height);
+      nsCSSValue autoValue;
+      autoValue.SetAutoValue();
+      aData->ValueForAspectRatio()->SetPairValue(autoValue, ratio);
     }
   }
 }
@@ -1824,8 +1831,8 @@ void
 nsGenericHTMLFormElement::SetForm(nsIDOMHTMLFormElement* aForm)
 {
   NS_PRECONDITION(aForm, "Don't pass null here");
-  NS_ASSERTION(!mForm,
-               "We don't support switching from one non-null form to another.");
+  MOZ_ASSERT(!mForm && !HasFlag(ADDED_TO_FORM),
+             "We don't support switching from one non-null form to another.");
 
   // keep a *weak* ref to the form here
   mForm = static_cast<HTMLFormElement*>(aForm);

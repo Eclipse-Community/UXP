@@ -2439,7 +2439,7 @@ static const VMFunction GetOrCreateModuleMetaObjectInfo =
 void
 CodeGenerator::visitModuleMetadata(LModuleMetadata* lir)
 {
-    pushArg(ImmPtr(lir->mir()->module()));
+    pushArg(ImmGCPtr(lir->mir()->module()));
     callVM(GetOrCreateModuleMetaObjectInfo, lir);
 }
 
@@ -8185,7 +8185,7 @@ CodeGenerator::visitStoreElementV(LStoreElementV* lir)
 template <typename T> void
 CodeGenerator::emitStoreElementHoleT(T* lir)
 {
-    static_assert(std::is_same<T, LStoreElementHoleT>::value || std::is_same<T, LFallibleStoreElementT>::value,
+    static_assert(std::is_same_v<T, LStoreElementHoleT> || std::is_same_v<T, LFallibleStoreElementT>,
                   "emitStoreElementHoleT called with unexpected argument type");
 
     OutOfLineStoreElementHole* ool = new(alloc()) OutOfLineStoreElementHole(lir);
@@ -8244,7 +8244,7 @@ CodeGenerator::visitStoreElementHoleT(LStoreElementHoleT* lir)
 template <typename T> void
 CodeGenerator::emitStoreElementHoleV(T* lir)
 {
-    static_assert(std::is_same<T, LStoreElementHoleV>::value || std::is_same<T, LFallibleStoreElementV>::value,
+    static_assert(std::is_same_v<T, LStoreElementHoleV> || std::is_same_v<T, LFallibleStoreElementV>,
                   "emitStoreElementHoleV called with unexpected parameter type");
 
     OutOfLineStoreElementHole* ool = new(alloc()) OutOfLineStoreElementHole(lir);
@@ -12059,6 +12059,10 @@ CodeGenerator::visitDebugCheckSelfHosted(LDebugCheckSelfHosted* ins)
 void
 CodeGenerator::visitRandom(LRandom* ins)
 {
+#ifdef JS_CODEGEN_ARM64
+    // Ion is not supported by the ARM64 backend.
+    MOZ_CRASH("ARM64 Ion is not implemented");
+#else
     using mozilla::non_crypto::Xoroshiro128PlusPlusRNG;
 
     FloatRegister output = ToFloatRegister(ins->output());
@@ -12147,6 +12151,7 @@ CodeGenerator::visitRandom(LRandom* ins)
 
     // output *= ScaleInv
     masm.mulDoublePtr(ImmPtr(&ScaleInv), tempReg, output);
+#endif
 }
 
 void

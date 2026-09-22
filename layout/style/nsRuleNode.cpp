@@ -188,9 +188,10 @@ nsRuleNode::ChildrenHashHashKey(const void *aKey)
 {
   const nsRuleNode::Key *key =
     static_cast<const nsRuleNode::Key*>(aKey);
-  // Disagreement on importance and level for the same rule is extremely
-  // rare, so hash just on the rule.
-  return PLDHashTable::HashVoidPtrKeyStub(key->mRule);
+  return PLDHashTable::HashVoidPtrKeyStub(key->mRule) ^
+         (uint32_t(key->mLayerIndex) << 4) ^
+         (uint32_t(key->mLevel) << 1) ^
+         (key->mIsImportantRule ? 1 : 0);
 }
 
 /* static */ bool
@@ -2274,18 +2275,19 @@ already_AddRefed<nsRuleNode>
 nsRuleNode::CreateRootNode(nsPresContext* aPresContext)
 {
   return do_AddRef(new (aPresContext)
-    nsRuleNode(aPresContext, nullptr, nullptr, SheetType::Unknown, false));
+    nsRuleNode(aPresContext, nullptr, nullptr, SheetType::Unknown, false, 0));
 }
 
 nsRuleNode::nsRuleNode(nsPresContext* aContext, nsRuleNode* aParent,
                        nsIStyleRule* aRule, SheetType aLevel,
-                       bool aIsImportant)
+                       bool aIsImportant, int32_t aLayerIndex)
   : mPresContext(aContext),
     mParent(aParent),
     mRule(aRule),
     mNextSibling(nullptr),
     mDependentBits((uint32_t(aLevel) << NS_RULE_NODE_LEVEL_SHIFT) |
                    (aIsImportant ? NS_RULE_NODE_IS_IMPORTANT : 0)),
+    mLayerIndex(aLayerIndex),
     mNoneBits(aParent ? aParent->mNoneBits & NS_RULE_NODE_HAS_ANIMATION_DATA :
                         0),
     mRefCnt(0)
@@ -2299,6 +2301,8 @@ nsRuleNode::nsRuleNode(nsPresContext* aContext, nsRuleNode* aParent,
 
   NS_ASSERTION(IsRoot() || GetLevel() == aLevel, "not enough bits");
   NS_ASSERTION(IsRoot() || IsImportantRule() == aIsImportant, "yikes");
+  NS_ASSERTION(IsRoot() || GetLayerIndex() == aLayerIndex,
+               "bad layer index");
   aContext->StyleSet()->RuleNodeUnused(this, /* aMayGC = */ false);
 
   // nsStyleSet::GetContext depends on there being only one animation
@@ -2323,7 +2327,7 @@ nsRuleNode::~nsRuleNode()
 
 nsRuleNode*
 nsRuleNode::Transition(nsIStyleRule* aRule, SheetType aLevel,
-                       bool aIsImportantRule)
+                       bool aIsImportantRule, int32_t aLayerIndex)
 {
 #ifdef DEBUG
   {
@@ -2334,7 +2338,7 @@ nsRuleNode::Transition(nsIStyleRule* aRule, SheetType aLevel,
 #endif
 
   nsRuleNode* next = nullptr;
-  nsRuleNode::Key key(aRule, aLevel, aIsImportantRule);
+  nsRuleNode::Key key(aRule, aLevel, aIsImportantRule, aLayerIndex);
 
   if (HaveChildren() && !ChildrenAreHashed()) {
     int32_t numKids = 0;
@@ -2361,12 +2365,14 @@ nsRuleNode::Transition(nsIStyleRule* aRule, SheetType aLevel,
       next = entry->mRuleNode;
     } else {
       next = entry->mRuleNode = new (mPresContext)
-        nsRuleNode(mPresContext, this, aRule, aLevel, aIsImportantRule);
+        nsRuleNode(mPresContext, this, aRule, aLevel, aIsImportantRule,
+                   aLayerIndex);
     }
   } else if (!next) {
     // Create the new entry in our list.
     next = new (mPresContext)
-      nsRuleNode(mPresContext, this, aRule, aLevel, aIsImportantRule);
+      nsRuleNode(mPresContext, this, aRule, aLevel, aIsImportantRule,
+                 aLayerIndex);
     next->mNextSibling = ChildrenList();
     SetChildrenList(next);
   }
@@ -2549,7 +2555,8 @@ ExamineCSSValue(const nsCSSValue& aValue,
       ++aInheritedCount;
     } else if (aValue.GetUnit() == eCSSUnit_Unset) {
       ++aUnsetCount;
-    } else if (aValue.GetUnit() == eCSSUnit_Revert) {
+    } else if (aValue.GetUnit() == eCSSUnit_Revert ||
+               aValue.GetUnit() == eCSSUnit_RevertLayer) {
       ++aRevertCount;
     }
   }
@@ -3025,7 +3032,11 @@ nsRuleNode::ResolveVariableReferences(const nsStyleStructID aSID,
                "Token stream should have a defined level");
 
     AutoRestore<SheetType> saveLevel(aRuleData->mLevel);
+    AutoRestore<bool> saveImportant(aRuleData->mIsImportantRule);
+    AutoRestore<int32_t> saveLayerIndex(aRuleData->mLayerIndex);
     aRuleData->mLevel = tokenStream->mLevel;
+    aRuleData->mIsImportantRule = tokenStream->mIsImportant;
+    aRuleData->mLayerIndex = tokenStream->mLayerIndex;
 
     // Note that ParsePropertyWithVariableReferences relies on the fact
     // that the nsCSSValue in aRuleData for the property we are re-parsing
@@ -3047,6 +3058,114 @@ nsRuleNode::ResolveVariableReferences(const nsStyleStructID aSID,
   }
 
   return anyTokenStreams;
+}
+
+static nsCSSPropertyID
+PropertyAtIndexInStruct(nsStyleStructID aSID, size_t aIndex)
+{
+  for (int32_t prop = 0; prop < eCSSProperty_COUNT_no_shorthands; prop++) {
+    nsCSSPropertyID property = nsCSSPropertyID(prop);
+    if (nsCSSProps::kSIDTable[property] == aSID &&
+        nsCSSProps::PropertyIndexInStruct(property) == aIndex) {
+      return property;
+    }
+  }
+  MOZ_ASSERT_UNREACHABLE("no property for style struct index");
+  return eCSSProperty_UNKNOWN;
+}
+
+/* static */ bool
+nsRuleNode::ResolveRevertLayerValues(const nsStyleStructID aSID,
+                                     nsRuleData* aRuleData,
+                                     nsStyleContext* aContext,
+                                     nsRuleNode* aStartRuleNode)
+{
+  MOZ_ASSERT(aSID != eStyleStruct_Variables);
+
+  size_t nprops = nsCSSProps::PropertyCountInStruct(aSID);
+  bool resolvedAny = false;
+
+  for (size_t pass = 0; pass <= nprops; pass++) {
+    bool resolvedThisPass = false;
+    bool needsVariableResolution = false;
+
+    for (size_t index = 0; index < nprops; index++) {
+      nsCSSValue* target = aRuleData->mValueStorage + index;
+      if (target->GetUnit() != eCSSUnit_RevertLayer) {
+        continue;
+      }
+
+      nsCSSPropertyID property = PropertyAtIndexInStruct(aSID, index);
+      if (property == eCSSProperty_UNKNOWN) {
+        continue;
+      }
+
+      AutoTArray<nsCSSValue, 64> tempValues;
+      tempValues.SetLength(nprops);
+      for (size_t i = 0; i < nprops; i++) {
+        tempValues[i].SetDummyValue();
+      }
+      tempValues[index] = *target;
+
+      nsRuleData tempRuleData(nsCachedStyleData::GetBitForSID(aSID),
+                              tempValues.Elements(),
+                              aStartRuleNode->mPresContext, aContext);
+      tempRuleData.mValueOffsets[aSID] = 0;
+
+      uint32_t bit = nsCachedStyleData::GetBitForSID(aSID);
+      for (nsRuleNode* ruleNode = aStartRuleNode; ruleNode;
+           ruleNode = ruleNode->GetParent()) {
+        if (ruleNode->mNoneBits & bit) {
+          break;
+        }
+
+        nsIStyleRule* rule = ruleNode->mRule;
+        if (rule) {
+          tempRuleData.mLevel = ruleNode->GetLevel();
+          tempRuleData.mIsImportantRule = ruleNode->IsImportantRule();
+          tempRuleData.mLayerIndex = ruleNode->GetLayerIndex();
+          rule->MapRuleInfoInto(&tempRuleData);
+        }
+
+        if (tempValues[index].GetUnit() != eCSSUnit_RevertLayer) {
+          break;
+        }
+      }
+
+      if (tempValues[index].GetUnit() == eCSSUnit_RevertLayer) {
+        tempValues[index].SetRevertValue(
+          target->GetRevertLayerOriginValue());
+      } else if (tempValues[index].GetUnit() == eCSSUnit_TokenStream) {
+        needsVariableResolution = true;
+      }
+
+      *target = tempValues[index];
+      aRuleData->mConditions.SetUncacheable();
+      resolvedThisPass = true;
+      resolvedAny = true;
+    }
+
+    if (!resolvedThisPass) {
+      break;
+    }
+
+    if (needsVariableResolution &&
+        ResolveVariableReferences(aSID, aRuleData, aContext)) {
+      resolvedAny = true;
+      continue;
+    }
+  }
+
+  for (size_t index = 0; index < nprops; index++) {
+    nsCSSValue* target = aRuleData->mValueStorage + index;
+    if (target->GetUnit() == eCSSUnit_RevertLayer) {
+      target->SetRevertValue(target->GetRevertLayerOriginValue());
+      aRuleData->mConditions.SetUncacheable();
+      resolvedAny = true;
+    }
+  }
+
+  return resolvedAny;
 }
 
 const void*
@@ -3122,6 +3241,7 @@ nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
     if (rule) {
       ruleData.mLevel = ruleNode->GetLevel();
       ruleData.mIsImportantRule = ruleNode->IsImportantRule();
+      ruleData.mLayerIndex = ruleNode->GetLayerIndex();
       rule->MapRuleInfoInto(&ruleData);
     }
 
@@ -3156,6 +3276,11 @@ nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
     // fails to parse its resolved value.)  We need to recompute
     // |detail| in case this happened.
     recomputeDetail = ResolveVariableReferences(aSID, &ruleData, aContext);
+  }
+
+  if (aSID != eStyleStruct_Variables &&
+      ResolveRevertLayerValues(aSID, &ruleData, aContext, this)) {
+    recomputeDetail = true;
   }
 
   // If needed, unset the properties that don't have a flag that allows
@@ -4893,6 +5018,7 @@ nsRuleNode::SetGenericFont(nsPresContext* aPresContext,
       if (rule) {
         ruleData.mLevel = ruleNode->GetLevel();
         ruleData.mIsImportantRule = ruleNode->IsImportantRule();
+        ruleData.mLayerIndex = ruleNode->GetLayerIndex();
         rule->MapRuleInfoInto(&ruleData);
       }
     }
@@ -4906,6 +5032,8 @@ nsRuleNode::SetGenericFont(nsPresContext* aPresContext,
     }
 
     ResolveVariableReferences(eStyleStruct_Font, &ruleData, aContext);
+    ResolveRevertLayerValues(eStyleStruct_Font, &ruleData, aContext,
+                             context->RuleNode());
 
     RuleNodeCacheConditions dummy;
     nsRuleNode::SetFont(aPresContext, context,
@@ -9483,15 +9611,54 @@ nsRuleNode::ComputePositionData(void* aStartStruct,
              SETCOORD_UNSET_INITIAL,
            aContext, mPresContext, conditions);
 
-  // aspect-ratio: auto | <ratio>
+  // aspect-ratio: auto || <ratio>
   const nsCSSValue* aspectRatio = aRuleData->ValueForAspectRatio();
-  if (aspectRatio->GetUnit() == eCSSUnit_Auto) {
-    pos->mAspectRatio = 0.0f;
-  } else {
-    SetFactor(*aspectRatio,
-              pos->mAspectRatio, conditions,
-              parentPos->mAspectRatio, 0.0f,
-              SETFCT_UNSET_INITIAL | SETFCT_POSITIVE | SETFCT_NONE);
+  switch (aspectRatio->GetUnit()) {
+    case eCSSUnit_Null:
+      break;
+
+    case eCSSUnit_Inherit:
+      conditions.SetUncacheable();
+      pos->mAspectRatio = parentPos->mAspectRatio;
+      break;
+
+    case eCSSUnit_Auto:
+    case eCSSUnit_Initial:
+    case eCSSUnit_Unset:
+    case eCSSUnit_Revert:
+    case eCSSUnit_RevertLayer:
+      pos->mAspectRatio = StyleAspectRatio();
+      break;
+
+    case eCSSUnit_Number:
+      // Animation normalizes a ratio to <number> / 1 when both components
+      // would otherwise compare equal and the pair is collapsed.
+      pos->mAspectRatio =
+        StyleAspectRatio(aspectRatio->GetFloatValue(), 1.0f, false);
+      break;
+
+    case eCSSUnit_Pair: {
+      const nsCSSValuePair* ratio = &aspectRatio->GetPairValue();
+      bool hasAuto = ratio->mXValue.GetUnit() == eCSSUnit_Auto;
+      if (hasAuto) {
+        MOZ_ASSERT(ratio->mYValue.GetUnit() == eCSSUnit_Pair,
+                   "auto must be followed by a ratio");
+        ratio = &ratio->mYValue.GetPairValue();
+      }
+
+      float width = 0.0f;
+      float height = 0.0f;
+      SetFactor(ratio->mXValue, width, conditions, 0.0f, 0.0f,
+                SETFCT_POSITIVE);
+      SetFactor(ratio->mYValue, height, conditions, 0.0f, 0.0f,
+                SETFCT_POSITIVE);
+      pos->mAspectRatio = StyleAspectRatio(width, height, hasAuto);
+      break;
+    }
+
+    default:
+      MOZ_ASSERT_UNREACHABLE("unexpected aspect-ratio unit");
+      break;
   }
 
   // box-sizing: enum, inherit, initial
@@ -11085,6 +11252,8 @@ nsRuleNode::ComputeVariablesData(void* aStartStruct,
   CSSVariableResolver resolver(&variables->mVariables);
   resolver.Resolve(&parentVariables->mVariables,
                    aRuleData->mVariables);
+  aRuleData->mVariables->ResolveRevertLayerFallbacks(&parentVariables->mVariables,
+                                                     &variables->mVariables);
   conditions.SetUncacheable();
 
   COMPUTE_END_INHERITED(Variables, variables)
@@ -11477,6 +11646,7 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
       if (rule) {
         ruleData.mLevel = ruleNode->GetLevel();
         ruleData.mIsImportantRule = ruleNode->IsImportantRule();
+        ruleData.mLayerIndex = ruleNode->GetLayerIndex();
 
         rule->MapRuleInfoInto(&ruleData);
 
@@ -11489,11 +11659,13 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
             nsCSSUnit unit = values[i]->GetUnit();
             if (unit != eCSSUnit_Null &&
                 unit != eCSSUnit_Revert &&
+                unit != eCSSUnit_RevertLayer &&
                 unit != eCSSUnit_Dummy &&
                 unit != eCSSUnit_DummyInherit) {
               if (unit == eCSSUnit_Inherit ||
                   (i >= inheritedOffset && unit == eCSSUnit_Unset) ||
-                  (i >= inheritedOffset && unit == eCSSUnit_Revert)) {
+                  (i >= inheritedOffset && unit == eCSSUnit_Revert) ||
+                  (i >= inheritedOffset && unit == eCSSUnit_RevertLayer)) {
                 haveExplicitUAInherit = true;
                 values[i]->SetDummyInheritValue();
               } else {
@@ -11508,7 +11680,8 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
             if (values[i]->GetUnit() != eCSSUnit_Null &&
                 values[i]->GetUnit() != eCSSUnit_Dummy && // see above
                 values[i]->GetUnit() != eCSSUnit_DummyInherit &&
-                values[i]->GetUnit() != eCSSUnit_Revert) {
+                values[i]->GetUnit() != eCSSUnit_Revert &&
+                values[i]->GetUnit() != eCSSUnit_RevertLayer) {
               // If author colors are not allowed, only claim to have
               // author-specified rules if we're looking at a non-color
               // property or if we're looking at the background color and it's
@@ -11600,6 +11773,7 @@ nsRuleNode::ComputePropertiesOverridingAnimation(
     if (rule) {
       ruleData.mLevel = ruleNode->GetLevel();
       ruleData.mIsImportantRule = ruleNode->IsImportantRule();
+      ruleData.mLayerIndex = ruleNode->GetLayerIndex();
 
       // Transitions are the only non-!important level overriding
       // animations in the cascade ordering.  They also don't actually

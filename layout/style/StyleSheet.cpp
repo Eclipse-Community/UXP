@@ -26,6 +26,9 @@ StyleSheet::StyleSheet(css::SheetParsingMode aParsingMode)
   , mOwningNode(nullptr)
   , mParsingMode(aParsingMode)
   , mDisabled(false)
+  , mConstructed(false)
+  , mDisallowModification(false)
+  , mAdoptionCount(0)
   , mDocumentAssociationMode(NotOwnedByDocument)
 {
 }
@@ -38,6 +41,9 @@ StyleSheet::StyleSheet(const StyleSheet& aCopy,
   , mOwningNode(aOwningNodeToUse)
   , mParsingMode(aCopy.mParsingMode)
   , mDisabled(aCopy.mDisabled)
+  , mConstructed(aCopy.mConstructed)
+  , mDisallowModification(false)
+  , mAdoptionCount(0)
     // We only use this constructor during cloning.  It's the cloner's
     // responsibility to notify us if we end up being owned by a document.
   , mDocumentAssociationMode(NotOwnedByDocument)
@@ -54,7 +60,7 @@ NS_INTERFACE_MAP_END
 NS_IMPL_CYCLE_COLLECTING_ADDREF(StyleSheet)
 NS_IMPL_CYCLE_COLLECTING_RELEASE(StyleSheet)
 
-NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE_0(StyleSheet)
+NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE(StyleSheet, mConstructorDocument)
 
 mozilla::dom::CSSStyleSheetParsingMode
 StyleSheet::ParsingModeDOM()
@@ -254,8 +260,68 @@ StyleSheet::Constructor(const GlobalObject& aGlobal, ErrorResult& aRv)
   sheet->SetURIs(documentURI, nullptr, baseURI);
   sheet->SetPrincipal(principal);
   sheet->SetComplete();
+  sheet->SetConstructed();
+  sheet->SetConstructorDocument(document);
 
   return sheet.forget();
+}
+
+void
+StyleSheet::AddAdopter(nsIDocument* aDocument)
+{
+  MOZ_ASSERT(IsConstructed());
+  MOZ_ASSERT(aDocument);
+  MOZ_ASSERT(ConstructorDocument() == aDocument);
+
+  if (mAdoptionCount++ == 0) {
+    SetAssociatedDocument(aDocument, NotOwnedByDocument);
+  }
+}
+
+void
+StyleSheet::AddAdopter(dom::ShadowRoot* aShadowRoot)
+{
+  MOZ_ASSERT(aShadowRoot);
+
+  mAdopterShadowRoots.AppendElement(aShadowRoot);
+  AddAdopter(aShadowRoot->OwnerDoc());
+}
+
+void
+StyleSheet::RemoveAdopter(nsIDocument* aDocument)
+{
+  MOZ_ASSERT(IsConstructed());
+  MOZ_ASSERT(aDocument);
+  MOZ_ASSERT(ConstructorDocument() == aDocument);
+  MOZ_ASSERT(mAdoptionCount > 0);
+
+  if (mAdoptionCount == 0) {
+    return;
+  }
+
+  if (--mAdoptionCount == 0 && !IsOwnedByDocument()) {
+    ClearAssociatedDocument();
+  }
+}
+
+void
+StyleSheet::RemoveAdopter(dom::ShadowRoot* aShadowRoot)
+{
+  MOZ_ASSERT(aShadowRoot);
+
+  mAdopterShadowRoots.RemoveElement(aShadowRoot);
+  RemoveAdopter(aShadowRoot->OwnerDoc());
+}
+
+void
+StyleSheet::NotifyAdopterRuleChanged()
+{
+  for (size_t i = 0; i < mAdopterShadowRoots.Length(); ++i) {
+    dom::ShadowRoot* shadowRoot = mAdopterShadowRoots[i];
+    if (mAdopterShadowRoots.IndexOf(shadowRoot) == i) {
+      shadowRoot->StyleSheetChanged();
+    }
+  }
 }
 
 dom::CSSRuleList*
@@ -288,6 +354,17 @@ StyleSheet::DeleteRule(uint32_t aIndex,
     return;
   }
   AsConcrete()->DeleteRuleInternal(aIndex, aRv);
+}
+
+void
+StyleSheet::ReplaceSync(const nsAString& aText, ErrorResult& aRv)
+{
+  if (!IsConstructed() || IsModificationDisallowed()) {
+    aRv.Throw(NS_ERROR_DOM_NOT_ALLOWED_ERR);
+    return;
+  }
+
+  AsConcrete()->ReplaceSyncInternal(aText, aRv);
 }
 
 int32_t

@@ -1781,6 +1781,7 @@ CSSStyleSheet::DidDirty()
   MOZ_ASSERT(!mInner->mComplete || mDirty,
              "caller must have called WillDirty()");
   ClearRuleCascades();
+  NotifyAdopterRuleChanged();
 }
 
 void
@@ -1870,12 +1871,19 @@ CSSStyleSheet::InsertRuleInternal(const nsAString& aRule,
   RefPtr<css::Rule> rule;
   aRv = css.ParseRule(aRule, mInner->mSheetURI, mInner->mBaseURI,
                       mInner->mPrincipal, getter_AddRefs(rule));
-  if (NS_WARN_IF(aRv.Failed())) {
+  // A syntax error from web content is an expected insertRule() outcome. The
+  // binding reports it to script; do not flood debug stderr as well.
+  if (aRv.Failed()) {
     return 0;
   }
 
   // Hierarchy checking.
   int32_t newType = rule->GetType();
+
+  if (IsConstructed() && newType == css::Rule::IMPORT_RULE) {
+    aRv.Throw(NS_ERROR_DOM_SYNTAX_ERR);
+    return 0;
+  }
 
   // check that we're not inserting before a charset rule
   css::Rule* nextRule = mInner->mOrderedRules.SafeObjectAt(aIndex);
@@ -1983,6 +1991,86 @@ CSSStyleSheet::DeleteRuleInternal(uint32_t aIndex, ErrorResult& aRv)
 
     if (mDocument) {
       mDocument->StyleRuleRemoved(this, rule);
+    }
+  }
+}
+
+void
+CSSStyleSheet::ReplaceSyncInternal(const nsAString& aText, ErrorResult& aRv)
+{
+  MOZ_ASSERT(mInner->mComplete);
+
+  RefPtr<CSSStyleSheet> parsedSheet =
+    new CSSStyleSheet(mParsingMode, GetCORSMode(), GetReferrerPolicy());
+  parsedSheet->SetURIs(mInner->mSheetURI, mInner->mOriginalSheetURI,
+                       mInner->mBaseURI);
+  parsedSheet->SetPrincipal(mInner->mPrincipal);
+  parsedSheet->SetComplete();
+
+  nsCSSParser parser(nullptr, parsedSheet);
+  nsresult rv = parser.ParseSheet(aText, parsedSheet->GetSheetURI(),
+                                  parsedSheet->GetBaseURI(),
+                                  parsedSheet->Principal(), 1);
+  if (NS_FAILED(rv)) {
+    parsedSheet->mInner->mOrderedRules.EnumerateForwards(SetStyleSheetReference,
+                                                         nullptr);
+    parsedSheet->mInner->mOrderedRules.Clear();
+  }
+
+  for (int32_t index = parsedSheet->mInner->mOrderedRules.Count() - 1;
+       index >= 0; --index) {
+    RefPtr<css::Rule> rule = parsedSheet->mInner->mOrderedRules.ObjectAt(index);
+    if (rule->GetType() == css::Rule::IMPORT_RULE) {
+      parsedSheet->mInner->mOrderedRules.RemoveObjectAt(index);
+      rule->SetStyleSheet(nullptr);
+    }
+  }
+
+  mozAutoDocUpdate updateBatch(mDocument, UPDATE_STYLE, true);
+
+  WillDirty();
+
+  while (mInner->mOrderedRules.Count() != 0) {
+    RefPtr<css::Rule> rule =
+      mInner->mOrderedRules.ObjectAt(mInner->mOrderedRules.Count() - 1);
+    mInner->mOrderedRules.RemoveObjectAt(mInner->mOrderedRules.Count() - 1);
+    rule->SetStyleSheet(nullptr);
+    if (mDocument) {
+      mDocument->StyleRuleRemoved(this, rule);
+    }
+  }
+
+  for (CSSStyleSheet* child = mInner->mFirstChild; child; ) {
+    NS_ASSERTION(child->mParent == this, "Child sheet is not parented to this!");
+    CSSStyleSheet* next = child->mNext;
+    child->mParent = nullptr;
+    child->mDocument = nullptr;
+    child->mNext = nullptr;
+    child = next;
+  }
+  mInner->mFirstChild = nullptr;
+  mInner->mNameSpaceMap = nullptr;
+
+  for (int32_t index = 0; index < parsedSheet->mInner->mOrderedRules.Count();
+       ++index) {
+    RefPtr<css::Rule> rule = parsedSheet->mInner->mOrderedRules.ObjectAt(index);
+    if (!mInner->mOrderedRules.AppendObject(rule)) {
+      aRv.Throw(NS_ERROR_OUT_OF_MEMORY);
+      return;
+    }
+    rule->SetStyleSheet(this);
+  }
+  parsedSheet->mInner->mOrderedRules.Clear();
+  parsedSheet->mInner->mNameSpaceMap = nullptr;
+
+  mInner->RebuildNameSpaces();
+
+  DidDirty();
+
+  if (mDocument) {
+    for (int32_t index = 0; index < mInner->mOrderedRules.Count(); ++index) {
+      RefPtr<css::Rule> rule = mInner->mOrderedRules.ObjectAt(index);
+      mDocument->StyleRuleAdded(this, rule);
     }
   }
 }

@@ -211,6 +211,7 @@
 # include "jswin.h"
 #endif
 
+#include "builtin/FinalizationRegistryObject.h"
 #include "gc/FindSCCs.h"
 #include "gc/GCInternals.h"
 #include "gc/GCTrace.h"
@@ -3645,14 +3646,22 @@ GCRuntime::beginMarkPhase(JS::gcreason::Reason reason, AutoLockForExclusiveAcces
     }
 
     /*
-     * Atoms are not in the cross-compartment map. So if there are any
-     * zones that are not being collected, we are not allowed to collect
-     * atoms. Otherwise, the non-collected zones could contain pointers
-     * to atoms that we would miss.
+     * Atoms are not in the cross-compartment map. If there are any zones that
+     * are not being collected then we cannot collect the atoms zone, otherwise
+     * the non-collected zones could contain pointers to atoms that we would
+     * miss.
      *
-     * keepAtoms() will only change on the main thread, which we are currently
-     * on. If the value of keepAtoms() changes between GC slices, then we'll
-     * cancel the incremental GC. See IsIncrementalGCSafe.
+     * If keepAtoms() is true then either an instance of AutoKeepAtoms is
+     * currently on the stack or parsing is currently happening on another
+     * thread. In either case we don't have information about which atoms are
+     * roots, so we must skip collecting atoms.
+     *
+     * Note that only affects the first slice of an incremental GC since root
+     * marking is completed before we return to the mutator.
+     *
+     * Off-main-thread parsing is inhibited after the start of GC which prevents
+     * races between creating atoms during parsing and sweeping atoms on the
+     * main thread.
      */
 
     if (isFull && !rt->keepAtoms()) {
@@ -3865,6 +3874,8 @@ GCRuntime::markWeakReferences(gcstats::Phase phase)
     }
     MOZ_ASSERT(marker.isDrained());
 
+    traceFinalizationRegistryWeakRefs<ZoneIterT>();
+
     marker.leaveWeakMarkingMode();
 }
 
@@ -3872,6 +3883,33 @@ void
 GCRuntime::markWeakReferencesInCurrentGroup(gcstats::Phase phase)
 {
     markWeakReferences<GCZoneGroupIter>(phase);
+}
+
+template <class ZoneIterT>
+void
+GCRuntime::traceFinalizationRegistryWeakRefs()
+{
+    for (ZoneIterT zone(rt); !zone.done(); zone.next()) {
+        for (size_t i = 0; i < zone->finalizationRegistries.length(); i++) {
+            WeakRef<JSObject*>& registry = zone->finalizationRegistries[i];
+            if (registry.unbarrieredGet())
+                TraceWeakEdge(&marker, &registry, "FinalizationRegistry registry");
+        }
+    }
+
+    for (ZonesIter zone(rt, WithAtoms); !zone.done(); zone.next()) {
+        for (size_t i = 0; i < zone->finalizationRegistries.length(); i++) {
+            JSObject* registry = zone->finalizationRegistries[i].unbarrieredGet();
+            if (registry && registry->is<FinalizationRegistryObject>())
+                registry->as<FinalizationRegistryObject>().traceWeakEdgesForCollectedZones(&marker);
+        }
+    }
+}
+
+void
+GCRuntime::traceFinalizationRegistryWeakRefsInCurrentGroup()
+{
+    traceFinalizationRegistryWeakRefs<GCZoneGroupIter>();
 }
 
 template <class ZoneIterT, class CompartmentIterT>
@@ -4569,6 +4607,8 @@ GCRuntime::beginSweepingZoneGroup(AutoLockForExclusiveAccess& lock)
             oomUnsafe.crash("clearing weak keys in beginSweepingZoneGroup()");
     }
 
+    sweepFinalizationRegistries();
+
     {
         gcstats::AutoPhase ap(stats, gcstats::PHASE_FINALIZE_START);
         callFinalizeCallbacks(&fop, JSFINALIZE_GROUP_START);
@@ -4717,6 +4757,26 @@ GCRuntime::beginSweepingZoneGroup(AutoLockForExclusiveAccess& lock)
     {
         gcstats::AutoPhase ap(stats, gcstats::PHASE_FINALIZE_END);
         callFinalizeCallbacks(&fop, JSFINALIZE_GROUP_END);
+    }
+}
+
+void
+GCRuntime::sweepFinalizationRegistries()
+{
+    for (ZonesIter zone(rt, WithAtoms); !zone.done(); zone.next()) {
+        for (size_t i = 0; i < zone->finalizationRegistries.length();) {
+            JSObject* obj = zone->finalizationRegistries[i].unbarrieredGet();
+            if (!obj || !obj->is<FinalizationRegistryObject>()) {
+                zone->finalizationRegistries.erase(zone->finalizationRegistries.begin() + i);
+                continue;
+            } 
+            i++;
+        }
+        for (size_t i = 0; i < zone->finalizationRegistries.length(); i++) {
+            JSObject* obj = zone->finalizationRegistries[i].unbarrieredGet();
+            obj->as<FinalizationRegistryObject>().sweepAfterGC(rt);
+        }
+        zone->finalizationRegistries.clear();
     }
 }
 
@@ -5558,9 +5618,6 @@ gc::IsIncrementalGCUnsafe(JSRuntime* rt)
 {
     MOZ_ASSERT(!rt->mainThread.suppressGC);
 
-    if (rt->keepAtoms())
-        return gc::AbortReason::KeepAtomsSet;
-
     if (!rt->gc.isIncrementalGCAllowed())
         return gc::AbortReason::IncrementalDisabled;
 
@@ -5734,6 +5791,10 @@ GCRuntime::gcCycle(bool nonincrementalByAPI, SliceBudget& budget, JS::gcreason::
 
     State prevState = incrementalState;
 
+    // We don't allow off-main-thread parsing to start while we're doing an
+    // incremental GC.
+    MOZ_ASSERT_IF(rt->activeGCInAtomsZone(), !rt->exclusiveThreadsPresent());
+
     if (nonincrementalByAPI) {
         // Reset any in progress incremental GC if this was triggered via the
         // API. This isn't required for correctness, but sometimes during tests
@@ -5897,6 +5958,13 @@ GCRuntime::collect(bool nonincrementalByAPI, SliceBudget budget, JS::gcreason::R
          */
         repeat = (poked && cleanUpEverything) || wasReset || repeatForDeadZone;
     } while (repeat);
+
+    if (rt->isBeingDestroyed()) {
+        rt->clearFinalizationRegistryCleanupJobs();
+    } else if (!rt->drainFinalizationRegistryCleanupJobs(rt->contextFromMainThread())) {
+        AutoEnterOOMUnsafeRegion oomUnsafe;
+        oomUnsafe.crash("draining FinalizationRegistry cleanup jobs");
+    }
 
     if (reason == JS::gcreason::COMPARTMENT_REVIVED)
         maybeDoCycleCollection();

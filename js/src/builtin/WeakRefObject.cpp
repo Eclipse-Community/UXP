@@ -69,7 +69,11 @@ WeakRef_deref_impl(JSContext* cx, const CallArgs& args)
     }
 
     if (data->isObject()) {
-        JSObject* target = data->objectTarget.get();
+        // Use unbarrieredGet() to avoid barriers on potentially invalid memory.
+        JSObject* target = data->objectTarget.unbarrieredGet();
+        
+        // Ensure pointer is not null.
+        // During WeakRef deref, if the target was collected, it will be nullptr.
         if (target) {
             RootedValue kept(cx, ObjectValue(*target));
             if (!cx->runtime()->addWeakRefKeptObject(cx, kept))
@@ -80,7 +84,9 @@ WeakRef_deref_impl(JSContext* cx, const CallArgs& args)
         }
     } else {
         MOZ_ASSERT(data->isSymbol());
-        JS::Symbol* target = data->symbolTarget.get();
+        JS::Symbol* target = data->symbolTarget.unbarrieredGet();
+        
+        // Ensure pointer is not null.
         if (target) {
             RootedValue kept(cx, SymbolValue(target));
             if (!cx->runtime()->addWeakRefKeptObject(cx, kept))
@@ -140,9 +146,9 @@ WeakRefObject::create(JSContext* cx, HandleValue target, HandleObject proto /* =
 
     Referent* data;
     if (target.isObject())
-        data = cx->new_<Referent>(&target.toObject());
+        data = cx->new_<Referent>(&target.toObject(), cx->options().weakRefs());
     else
-        data = cx->new_<Referent>(target.toSymbol());
+        data = cx->new_<Referent>(target.toSymbol(), cx->options().weakRefs());
 
     if (!data)
         return nullptr;
@@ -210,7 +216,9 @@ WeakRefObject::trace(JSTracer* trc, JSObject* obj)
             if (!target)
                 return;
 
-            if (IsInsideNursery(target)) {
+            if (!data->enabled) {
+                // Pref disabled, don't do anything.
+            } else if (IsInsideNursery(target)) {
                 // Weak edges must be tenured; trace strongly while referent is in the nursery.
                 TraceManuallyBarrieredEdge(trc, data->objectTarget.unsafeGet(),
                                            "WeakRef nursery referent");
@@ -220,7 +228,7 @@ WeakRefObject::trace(JSTracer* trc, JSObject* obj)
         } else {
             MOZ_ASSERT(data->isSymbol());
             JS::Symbol* target = data->symbolTarget.unbarrieredGet();
-            if (target)
+            if (data->enabled && target)
                 TraceWeakEdge(trc, &data->symbolTarget, "WeakRef symbol referent");
         }
     }

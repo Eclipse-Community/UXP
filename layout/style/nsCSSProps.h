@@ -44,7 +44,7 @@
 // 'inherit' and 'initial'
 #define VARIANT_OPACITY         0x008000  // Take floats and percents as input, output float.
 #define VARIANT_AUTO            0x010000  // A
-#define VARIANT_INHERIT         0x020000  // H eCSSUnit_Initial, eCSSUnit_Inherit, eCSSUnit_Unset, eCSSUnit_Revert
+#define VARIANT_INHERIT         0x020000  // H eCSSUnit_Initial, eCSSUnit_Inherit, eCSSUnit_Unset, eCSSUnit_Revert, eCSSUnit_RevertLayer
 #define VARIANT_NONE            0x040000  // O
 #define VARIANT_NORMAL          0x080000  // M
 #define VARIANT_SYSFONT         0x100000  // eCSSUnit_System_Font
@@ -364,7 +364,7 @@ public:
     }
 
     template<typename T,
-             typename = typename std::enable_if<std::is_enum<T>::value>::type>
+             typename = typename std::enable_if_t<std::is_enum_v<T>>>
     KTableEntry(nsCSSKeyword aKeyword, T aValue)
       : mKeyword(aKeyword)
       , mValue(static_cast<int16_t>(aValue))
@@ -451,7 +451,7 @@ public:
   static nsCSSKeyword ValueToKeywordEnum(int32_t aValue,
                                          const KTableEntry aTable[]);
   template<typename T,
-           typename = typename std::enable_if<std::is_enum<T>::value>::type>
+           typename = typename std::enable_if_t<std::is_enum_v<T>>>
   static nsCSSKeyword ValueToKeywordEnum(T aValue,
                                          const KTableEntry aTable[])
   {
@@ -463,7 +463,7 @@ public:
   static const nsAFlatCString& ValueToKeyword(int32_t aValue,
                                               const KTableEntry aTable[]);
   template<typename T,
-           typename = typename std::enable_if<std::is_enum<T>::value>::type>
+           typename = typename std::enable_if_t<std::is_enum_v<T>>>
   static const nsAFlatCString& ValueToKeyword(T aValue,
                                               const KTableEntry aTable[])
   {

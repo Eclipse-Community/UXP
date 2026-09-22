@@ -13,6 +13,7 @@
 #include <algorithm> // For std::max
 #include "mozilla/EffectSet.h"
 #include "mozilla/EventStates.h"
+#include "mozilla/dom/ShadowRoot.h"
 #include "nsLayoutUtils.h"
 #include "AnimationCommon.h" // For GetLayerAnimationInfo
 #include "FrameLayerBuilder.h"
@@ -260,6 +261,7 @@ RestyleManager::ContentStateChanged(nsIContent* aContent,
   ContentStateChangedInternal(aElement, aStateMask, &changeHint, &restyleHint);
 
   PostRestyleEvent(aElement, restyleHint, changeHint);
+  RestyleForHasPseudoClassChange(aElement, aStateMask);
 }
 
 // Forwarded nsIMutationObserver method, to handle restyling.
@@ -280,6 +282,12 @@ RestyleManager::AttributeWillChange(Element* aElement,
                                            aNewValue,
                                            rsdata);
   PostRestyleEvent(aElement, rshint, nsChangeHint(0), &rsdata);
+  // Class values are preparsed by Element before this notification. Compare
+  // membership now: AttributeChanged need not receive the previous value.
+  if (aNameSpaceID == kNameSpaceID_None && aAttribute == nsGkAtoms::_class) {
+    RestyleForHasPseudoClassChange(aElement, EventStates(), aAttribute,
+                                   aNewValue, true);
+  }
 }
 
 // Forwarded nsIMutationObserver method, to handle restyling (and
@@ -374,6 +382,68 @@ RestyleManager::AttributeChanged(Element* aElement,
                                            aOldValue,
                                            rsdata);
   PostRestyleEvent(aElement, rshint, hint, &rsdata);
+  if (aNameSpaceID != kNameSpaceID_None || aAttribute != nsGkAtoms::_class) {
+    RestyleForHasPseudoClassChange(aElement, EventStates(), aAttribute);
+  }
+}
+
+void
+RestyleManager::RestyleForHasPseudoClassChange(nsINode* aNode,
+                                              EventStates aStateMask,
+                                              nsIAtom* aAttribute,
+                                              const nsAttrValue* aNewClasses,
+                                              bool aCompareClasses)
+{
+  MOZ_ASSERT(!aAttribute || aNode->IsElement());
+  if (!aNode->OwnerDoc()->GetProperty(nsGkAtoms::hasSelectorDependency)) {
+    return;
+  }
+
+  using Dependency = nsCSSRuleUtils::HasSelectorDependency;
+  auto restyleAnchor = [&](Element* aAnchor, Dependency* aDependency) {
+    nsRestyleHint hint = eRestyle_Subtree;
+    if (aDependency->mRestyleLaterSiblings) {
+      hint = nsRestyleHint(hint | eRestyle_LaterSiblings);
+    }
+    PostRestyleEvent(aAnchor, hint, nsChangeHint(0));
+  };
+
+  for (nsINode* node = aNode; node; node = node->GetParentNode()) {
+    auto* dependency = static_cast<Dependency*>(
+      node->GetProperty(nsGkAtoms::hasSelectorDependency));
+    if (!dependency) {
+      continue;
+    }
+    if (node->IsElement() && dependency->MightDependOnChange(
+          node->AsElement(), aNode, aStateMask, aAttribute, aNewClasses,
+          aCompareClasses, false)) {
+      restyleAnchor(node->AsElement(), dependency);
+    }
+    if (!dependency->MightAffectSiblingAnchor(
+          node, aNode, aStateMask, aAttribute, aNewClasses, aCompareClasses)) {
+      continue;
+    }
+    // The parent is an index of sibling anchors, not itself an anchor. Keep
+    // unrelated subtrees out of the restyle, including mutations deep inside
+    // a sibling whose :has() argument only inspects the sibling element.
+    bool nodeIsFollowingSibling = true;
+    for (nsIContent* child = node->GetFirstChild(); child;
+         child = child->GetNextSibling()) {
+      if (child == aNode) {
+        nodeIsFollowingSibling = false;
+      }
+      if (!child->IsElement()) {
+        continue;
+      }
+      auto* siblingDependency = static_cast<Dependency*>(
+        child->GetProperty(nsGkAtoms::hasSelectorDependency));
+      if (siblingDependency && siblingDependency->MightDependOnChange(
+            child->AsElement(), aNode, aStateMask, aAttribute, aNewClasses,
+            aCompareClasses, true, nodeIsFollowingSibling)) {
+        restyleAnchor(child->AsElement(), siblingDependency);
+      }
+    }
+  }
 }
 
 /* static */ uint64_t
@@ -402,6 +472,8 @@ RestyleManager::RestyleForAppend(nsIContent* aContainer,
                                  nsIContent* aFirstNewContent)
 {
   // The container cannot be a document, but might be a ShadowRoot.
+  RestyleForHasPseudoClassChange(aContainer);
+
   if (!aContainer->IsElement()) {
     return;
   }
@@ -491,6 +563,8 @@ RestyleManager::RestyleForInsertOrChange(nsINode* aContainer,
                                          nsIContent* aChild)
 {
   // The container might be a document or a ShadowRoot.
+  RestyleForHasPseudoClassChange(aContainer);
+
   if (!aContainer->IsElement()) {
     return;
   }
@@ -581,6 +655,8 @@ RestyleManager::ContentRemoved(nsINode* aContainer,
                                nsIContent* aFollowingSibling)
 {
   // The container might be a document or a ShadowRoot.
+  RestyleForHasPseudoClassChange(aContainer);
+
   if (!aContainer->IsElement()) {
     return;
   }

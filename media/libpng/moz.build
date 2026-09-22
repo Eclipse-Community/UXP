@@ -9,7 +9,7 @@ EXPORTS += [
     'pnglibconf.h'
 ]
 
-UNIFIED_SOURCES += [
+SOURCES += [
     'png.c',
     'pngerror.c',
     'pngget.c',
@@ -26,11 +26,12 @@ UNIFIED_SOURCES += [
     'pngwutil.c'
 ]
 
-if CONFIG['CPU_ARCH'] == 'arm':
+if CONFIG['CPU_ARCH'] in ('arm','aarch64'):
     DEFINES['MOZ_PNG_USE_ARM_NEON'] = True
-    UNIFIED_SOURCES += [
+    SOURCES += [
         'arm/arm_init.c',
-        'arm/filter_neon_intrinsics.c'
+        'arm/filter_neon_intrinsics.c',
+        'arm/palette_neon_intrinsics.c'
     ]
 
     SOURCES += [
@@ -39,10 +40,19 @@ if CONFIG['CPU_ARCH'] == 'arm':
 
 if CONFIG['INTEL_ARCHITECTURE']:
     DEFINES['MOZ_PNG_USE_INTEL_SSE'] = True
-    UNIFIED_SOURCES += [
+    SOURCES += [
         'sse2/filter_sse2_intrinsics.c',
         'sse2/intel_init.c'
     ]
+
+if CONFIG['CPU_ARCH'] == 'loongarch64':
+    DEFINES['PNG_LOONGARCH_LSX_OPT'] = 1
+    SOURCES += [
+        'loongarch/filter_lsx_intrinsics.c',
+        'loongarch/loongarch_lsx_init.c',
+    ]
+    SOURCES['loongarch/filter_lsx_intrinsics.c'].flags += ['-mlsx']
+    SOURCES['loongarch/loongarch_lsx_init.c'].flags += ['-mlsx']
 
 Library('mozpng')
 

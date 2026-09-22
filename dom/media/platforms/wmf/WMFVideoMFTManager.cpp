@@ -315,6 +315,30 @@ FindD3D9BlacklistedDLL() {
                                 "media.wmf.disable-d3d9-for-dlls");
 }
 
+/* static */
+DXVA2Manager*
+WMFVideoMFTManager::CreateVP9DXVA(layers::KnowsCompositor* aCompositor,
+                                  nsACString& aFailureReason,
+                                  const GUID& aGUID)
+{
+  DXVA2Manager* result = nullptr;
+  nsCOMPtr<nsIRunnable> event = NS_NewRunnableFunction([&]() {
+    const nsCString& blocked = FindD3D9BlacklistedDLL();
+    if (!blocked.IsEmpty()) {
+      aFailureReason.AssignLiteral("D3D9 DLL is blocklisted");
+      return;
+    }
+    result = DXVA2Manager::CreateD3D9DXVA(aCompositor, aFailureReason, &aGUID);
+  });
+  if (NS_IsMainThread()) {
+    event->Run();
+  } else {
+    nsCOMPtr<nsIThread> mainThread = do_GetMainThread();
+    SyncRunnable::DispatchToThread(mainThread, event);
+  }
+  return result;
+}
+
 class CreateDXVAManagerEvent : public Runnable {
 public:
   CreateDXVAManagerEvent(LayersBackend aBackend,
@@ -828,12 +852,15 @@ WMFVideoMFTManager::CreateBasicVideoFrame(IMFSample* aSample,
   RefPtr<layers::PlanarYCbCrImage> image =
     new IMFYCbCrImage(buffer, twoDBuffer);
 
-  VideoData::SetVideoDataToImage(image,
-                                 mVideoInfo,
-                                 b,
-                                 pictureRegion,
-                                 false);
-
+  if (!VideoData::SetVideoDataToImage(image,
+                                      mVideoInfo,
+                                      b,
+                                      pictureRegion,
+                                      false)) {
+    LOG("CreateBasicVideoFrame: failed to set video data to image (shmem path)");
+    return E_FAIL;
+  }
+  
   RefPtr<VideoData> v =
     VideoData::CreateFromImage(mVideoInfo,
                                aStreamOffset,
