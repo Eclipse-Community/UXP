@@ -196,6 +196,7 @@ case "$target" in
             MSVC_C_RUNTIME_DLL=vcruntime*.dll
             MSVC_CMP_RUNTIME_DLL=vcomp140.dll
             MSVC_CXX_RUNTIME_DLL=msvcp140.dll
+            MSVC_CON_RUNTIME_DLL=concrt140.dll
 
             # C5026: move constructor was implicitly defined as deleted
             CXXFLAGS="$CXXFLAGS -wd5026"
@@ -215,6 +216,7 @@ case "$target" in
         AC_SUBST(MSVC_C_RUNTIME_DLL)
         AC_SUBST(MSVC_CMP_RUNTIME_DLL)
         AC_SUBST(MSVC_CXX_RUNTIME_DLL)
+        AC_SUBST(MSVC_CON_RUNTIME_DLL)
 
         # Check linker version
         _LD_FULL_VERSION=`"${LD}" -v 2>&1 | sed -nre "$_MSVC_VER_FILTER"`
