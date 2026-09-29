@@ -120,6 +120,9 @@ def dependentlibs(lib, libpaths, func):
         if dep in deps or os.path.isabs(dep):
             continue
         for dir in libpaths:
+            if dep.lower() == "msvcp140.dll" and lib.lower().endswith("concrt140.dll"):
+                # these DLLs depend on each other. Try not to blow the stack.
+                continue
             deppath = os.path.join(dir, dep)
             if os.path.exists(deppath):
                 deps.update(dependentlibs(deppath, libpaths, func))
