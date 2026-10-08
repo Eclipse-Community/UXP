@@ -9,7 +9,6 @@ ac_add_options --with-app-basename=Hydra
 export MOZ_OFFICIAL_BRANDING=1
 export MC_BASILISK=1
 export MC_OFFICIAL=1
-export BASILISK_VERSION=1
 
 # 16 jobs for 16 cores
 mk_add_options MOZ_MAKE_FLAGS="-j16"
