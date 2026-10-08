@@ -765,6 +765,24 @@ fi
 AC_SUBST(JS_LTO)
 
 dnl ========================================================
+dnl ECX IA-32 support
+dnl ========================================================
+
+# Disabled unless explicitly enabled.
+ECX_IA32=
+
+MOZ_ARG_ENABLE_BOOL(ia-32,
+[  --enable-ia-32          Enable ECX IA-32 support],
+    ECX_IA32=1,
+    ECX_IA32=)
+
+if test -n "$ECX_IA32"; then
+    AC_DEFINE(ECX_IA32)
+fi
+
+AC_SUBST(ECX_IA32)
+
+dnl ========================================================
 dnl System overrides of the defaults for target
 dnl ========================================================
 
@@ -913,15 +931,20 @@ case "$target" in
             CXXFLAGS="$CXXFLAGS -utf-8"
         fi
         if test "$CPU_ARCH" = "x86"; then
-            dnl VS2012+ defaults to -arch:SSE2. We want to target nothing
-            dnl more recent, so set that explicitly here unless another
-            dnl target arch has already been set.
+            dnl Use IA32 when requested; otherwise default to SSE2.
+            if test -n "$ECX_IA32"; then
+              arch=IA32
+            else
+              arch=SSE2
+            fi
+
+            dnl Respect an architecture already specified in the flags.
             changequote(,)
             if test -z `echo $CFLAGS | grep -i [-/]arch:`; then
-              CFLAGS="$CFLAGS -arch:SSE2"
+              CFLAGS="$CFLAGS -arch:$arch"
             fi
             if test -z `echo $CXXFLAGS | grep -i [-/]arch:`; then
-              CXXFLAGS="$CXXFLAGS -arch:SSE2"
+              CXXFLAGS="$CXXFLAGS -arch:$arch"
             fi
             changequote([,])
             SSE_FLAGS="-arch:SSE"
