@@ -16,7 +16,7 @@ else
 	$(MAKE) stage-package make-buildinfo-file
 	@echo 'Compressing...'
 ifeq (WINNT,$(OS_ARCH))
-	cd $(DIST); $(CYGWIN_WRAPPER) 7z a -t7z -m0=lzma2 -mx=9 -aoa -bb3 $(PKG_BASENAME).7z $(MOZ_PKG_DIR)
+	$(MAKE) make-package
 else
 	cd $(DIST); XZ_OPT=-9e $(TAR) cfJv $(PKG_BASENAME).tar.xz $(MOZ_PKG_DIR)
 endif
