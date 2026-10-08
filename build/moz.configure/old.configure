@@ -187,6 +187,7 @@ def old_configure_options(*options):
     '--enable-gczeal',
     '--enable-gold',
     '--enable-hardware-aec-ns',
+    '--enable-ia-32',
     '--enable-icf',
     '--enable-install-strip',
     '--enable-int-audio-sample',

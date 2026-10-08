@@ -693,6 +693,9 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
         'skia/src/fonts/SkRemotableFontMgr.cpp',
     ]
 
+if CONFIG['ECX_IA32']:
+    DEFINES['SK_BUILD_NO_OPTS'] = True
+
 if CONFIG['GKMEDIAS_SHARED_LIBRARY']:
     DEFINES['SKIA_DLL'] = 1
     DEFINES['GR_DLL'] = 1
