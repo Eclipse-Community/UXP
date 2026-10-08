@@ -10,6 +10,7 @@ ac_add_options --host=i686-pc-mingw32
 ac_add_options --target=i686-pc-mingw32
 WIN32_REDIST_DIR="${VCINSTALLDIR}/Redist/x86/Microsoft.VC141.CRT"
 WIN_UCRT_REDIST_DIR="${WINDOWSSDKDIR}/Redist/ucrt/DLLs/r86"
+mk_add_options MOZ_OBJDIR=obj-i686-newmoon-pc-mingw32
 
 # Build only Lun3r
 ac_add_options --enable-application=palemoon
