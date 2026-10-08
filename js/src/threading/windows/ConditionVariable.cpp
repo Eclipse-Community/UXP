@@ -14,89 +14,10 @@
 #include "threading/Mutex.h"
 #include "threading/windows/MutexPlatformData.h"
 
-// Some versions of the Windows SDK have a bug where some interlocked functions
-// are not redefined as compiler intrinsics. Fix that for the interlocked
-// functions that are used in this file.
-#if defined(_MSC_VER) && !defined(InterlockedExchangeAdd)
-#define InterlockedExchangeAdd(addend, value)                                  \
-  _InterlockedExchangeAdd((volatile long*)(addend), (long)(value))
-#endif
-
-#if defined(_MSC_VER) && !defined(InterlockedIncrement)
-#define InterlockedIncrement(addend)                                           \
-  _InterlockedIncrement((volatile long*)(addend))
-#endif
-
-// Windows XP and Server 2003 don't support condition variables natively. The
-// NativeImports class is responsible for detecting native support and
-// retrieving the appropriate function pointers. It gets instantiated once,
-// using a static initializer.
-class ConditionVariableNativeImports
-{
-public:
-  ConditionVariableNativeImports() {
-    HMODULE kernel32_dll = GetModuleHandle("kernel32.dll");
-    MOZ_RELEASE_ASSERT(kernel32_dll != NULL);
-
-#define LOAD_SYMBOL(symbol) loadSymbol(kernel32_dll, #symbol, symbol)
-    supported_ = LOAD_SYMBOL(InitializeConditionVariable) &&
-                 LOAD_SYMBOL(WakeConditionVariable) &&
-                 LOAD_SYMBOL(WakeAllConditionVariable) &&
-                 LOAD_SYMBOL(SleepConditionVariableCS);
-#undef LOAD_SYMBOL
-  }
-
-  inline bool supported() const {
-    return supported_;
-  }
-
-  void(WINAPI* InitializeConditionVariable)(CONDITION_VARIABLE* ConditionVariable);
-  void(WINAPI* WakeAllConditionVariable)(PCONDITION_VARIABLE ConditionVariable);
-  void(WINAPI* WakeConditionVariable)(CONDITION_VARIABLE* ConditionVariable);
-  BOOL(WINAPI* SleepConditionVariableCS)(CONDITION_VARIABLE* ConditionVariable,
-                                         CRITICAL_SECTION* CriticalSection,
-                                         DWORD dwMilliseconds);
-
-private:
-  template <typename T>
-  inline bool loadSymbol(HMODULE module, const char* name, T& fn) {
-    FARPROC ptr = GetProcAddress(module, name);
-    if (!ptr)
-      return false;
-
-    fn = reinterpret_cast<T>(ptr);
-    return true;
-  }
-
-  bool supported_;
-};
-
-static ConditionVariableNativeImports sNativeImports;
-
-// Wrapper for native condition variable APIs.
-struct ConditionVariableNative
-{
-  inline void initialize() {
-    sNativeImports.InitializeConditionVariable(&cv_);
-  }
-
-  inline void destroy() {
-    // Native condition variables don't require cleanup.
-  }
-
-  inline void notify_one() { sNativeImports.WakeConditionVariable(&cv_); }
-
-  inline void notify_all() { sNativeImports.WakeAllConditionVariable(&cv_); }
-
-  inline bool wait(CRITICAL_SECTION* cs, DWORD msec) {
-    return sNativeImports.SleepConditionVariableCS(&cv_, cs, msec);
-  }
-
-private:
-  CONDITION_VARIABLE cv_;
-};
-
-// Fast fallback condition variable support for Windows XP and Server 2003.
+// Windows XP and Server 2003 do not support condition variables natively.
+// This implementation always uses the fallback (no native condvars).
+// Should be similar enough in performance to native condvars.
+// Also helps to stability test this workaround if all operating systems use it.
 struct ConditionVariableFallback {
   uint32_t waiting;
   CRITICAL_SECTION lock_waiting;
@@ -188,50 +109,25 @@ struct ConditionVariableFallback {
   }
 };
 
-struct js::ConditionVariable::PlatformData
-{
-  union
-  {
-    ConditionVariableNative native;
-    ConditionVariableFallback fallback;
-  };
+struct js::ConditionVariable::PlatformData {
+  ConditionVariableFallback fallback;
 };
 
-js::ConditionVariable::ConditionVariable()
-{
-  if (sNativeImports.supported())
-    platformData()->native.initialize();
-  else
-    platformData()->fallback.initialize();
+js::ConditionVariable::ConditionVariable() {
+  platformData()->fallback.initialize();
 }
 
-void
-js::ConditionVariable::notify_one()
-{
-  if (sNativeImports.supported())
-    platformData()->native.notify_one();
-  else
-    platformData()->fallback.notify_one();
+void js::ConditionVariable::notify_one() {
+  platformData()->fallback.notify_one();
 }
 
-void
-js::ConditionVariable::notify_all()
-{
-  if (sNativeImports.supported())
-    platformData()->native.notify_all();
-  else
-    platformData()->fallback.notify_all();
+void js::ConditionVariable::notify_all() {
+  platformData()->fallback.notify_all();
 }
 
-void
-js::ConditionVariable::wait(UniqueLock<Mutex>& lock)
-{
+void js::ConditionVariable::wait(UniqueLock<Mutex>& lock) {
   CRITICAL_SECTION* cs = &lock.lock.platformData()->criticalSection;
-  bool r;
-  if (sNativeImports.supported())
-    r = platformData()->native.wait(cs, INFINITE);
-  else
-    r = platformData()->fallback.wait(cs, INFINITE);
+  bool r = platformData()->fallback.wait(cs, INFINITE);
   MOZ_RELEASE_ASSERT(r);
 }
 
@@ -270,23 +166,15 @@ js::ConditionVariable::wait_for(UniqueLock<Mutex>& lock,
     }
   }
 
-  BOOL r;
-  if (sNativeImports.supported())
-    r = platformData()->native.wait(cs, msec);
-  else
-    r = platformData()->fallback.wait(cs, msec);
-  if (r)
-    return CVStatus::NoTimeout;
+  BOOL r = platformData()->fallback.wait(cs, msec) ? TRUE : FALSE;
+  if (r) return CVStatus::NoTimeout;
   MOZ_RELEASE_ASSERT(GetLastError() == ERROR_TIMEOUT);
   return CVStatus::Timeout;
 }
 
 js::ConditionVariable::~ConditionVariable()
 {
-  if (sNativeImports.supported())
-    platformData()->native.destroy();
-  else
-    platformData()->fallback.destroy();
+  platformData()->fallback.destroy();
 }
 
 inline js::ConditionVariable::PlatformData*
