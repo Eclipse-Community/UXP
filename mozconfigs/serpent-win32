@@ -60,7 +60,6 @@ export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_REQUIRE_SIGNING=
 export MOZ_SOURCE_CHANGESET=iloveneedingtobodgechangesetfornoreason
 export MOZ_TELEMETRY_REPORTING=
-export MOZ_PACKAGE_JSSHELL=1
 
 # Set -Copt-level=3
 export OPT_LEVEL="3"
