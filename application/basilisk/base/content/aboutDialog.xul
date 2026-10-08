@@ -45,11 +45,7 @@
       <vbox id="leftBox" flex="1"/>
       <vbox id="rightBox" flex="1">
         <hbox align="baseline">
-#ifdef HAVE_64BIT_BUILD
-#expand <label id="version">__MOZ_APP_VERSION_DISPLAY__ (64-bit)</label>
-#else
-#expand <label id="version">__MOZ_APP_VERSION_DISPLAY__ (32-bit)</label>
-#endif
+#expand <label id="version"></label>
 #ifndef NIGHTLY_BUILD
        <label id="releasenotes" class="text-link">&releaseNotes.link;</label>
 #endif

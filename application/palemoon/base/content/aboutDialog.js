@@ -36,13 +36,24 @@ function init(aEvent)
     // Pref is unset
   }
 
-  // Include the build ID if this is an "a#" or "b#" build
-  let version = Services.appinfo.version;
-  if (/[ab]\d+$/.test(version)) {
-    let buildID = Services.appinfo.appBuildID;
-    let buildDate = buildID.slice(0,4) + "-" + buildID.slice(4,6) + "-" + buildID.slice(6,8);
-    document.getElementById("aboutVersion").textContent += " (" + buildDate + ")";
-  }
+  let versionField = document.getElementById("aboutVersion");
+  let buildID = Services.appinfo.appBuildID;
+  let year = buildID.slice(0, 4);
+  let syear = buildID.slice(2, 4);
+  let month = buildID.slice(4, 6);
+  let day = buildID.slice(6, 8);
+  let hour = buildID.slice(8, 10);
+  let minute = buildID.slice(10, 12);
+  let second = buildID.slice(12, 14);
+  versionField.textContent = `Version: ${syear}.${month}.${day}`;
+
+#ifdef ECX_IA32
+  versionField.textContent += ` (IA-32)`;
+#elifdef HAVE_64BIT_BUILD
+  versionField.textContent += ` (64-bit)`;
+#else
+  versionField.textContent += ` (32-bit)`;
+#endif
 
 // get release notes URL from prefs
   var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]

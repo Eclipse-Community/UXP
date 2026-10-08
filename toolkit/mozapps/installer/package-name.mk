@@ -13,7 +13,7 @@ PACKAGE_NAME_MK_INCLUDED := 1
 
 ifndef MOZ_PKG_VERSION
 # Normally MOZ_PKG_VERSION is set to the application version
-MOZ_PKG_VERSION = $(MOZ_APP_VERSION_DISPLAY)
+MOZ_PKG_VERSION = $(shell echo $(BUILDID) | awk '{printf "v%s.%s.%s-%sh%sm%ss", substr($$0,3,2), substr($$0,5,2), substr($$0,7,2), substr($$0,9,2), substr($$0,11,2), substr($$0,13,2)}')
 endif
 
 ifndef MOZ_PKG_PLATFORM

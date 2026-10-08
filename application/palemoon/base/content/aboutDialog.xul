@@ -30,11 +30,7 @@
   <vbox id="aboutPMDialogContainer" flex="1">
     <vbox id="aboutHeaderBox" />
     <vbox id="aboutVersionBox" flex="3">
-#ifdef HAVE_64BIT_BUILD
-#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION_DISPLAY__ (64-bit)</label>
-#else
-#expand <label id="aboutVersion">Version: __MOZ_APP_VERSION_DISPLAY__ (32-bit)</label>
-#endif
+#expand <label id="aboutVersion"></label>
         <label id="distribution" class="text-blurb"/>
         <label id="distributionId" class="text-blurb"/>
 

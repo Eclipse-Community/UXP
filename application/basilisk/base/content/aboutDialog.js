@@ -39,19 +39,24 @@ function init(aEvent)
     // Pref is unset
   }
 
-  // Display warning if this is an "a#" (nightly or aurora) build
-  if (/a\d+$/.test(version)) {
-    document.getElementById("experimental").hidden = false;
-    document.getElementById("communityDesc").hidden = true;
-  }
+  let versionField = document.getElementById("version");
+  let buildID = Services.appinfo.appBuildID;
+  let year = buildID.slice(0, 4);
+  let syear = buildID.slice(2, 4);
+  let month = buildID.slice(4, 6);
+  let day = buildID.slice(6, 8);
+  let hour = buildID.slice(8, 10);
+  let minute = buildID.slice(10, 12);
+  let second = buildID.slice(12, 14);
+  versionField.textContent = `v${syear}.${month}.${day}`;
 
-  // Append "(32-bit)" or "(64-bit)" build architecture to the version number:
-  let bundle = Services.strings.createBundle("chrome://browser/locale/browser.properties");
-  let archResource = Services.appinfo.is64Bit
-                     ? "aboutDialog.architecture.sixtyFourBit"
-                     : "aboutDialog.architecture.thirtyTwoBit";
-  let arch = bundle.GetStringFromName(archResource);
-  versionField.textContent += ` (${arch})`;
+#ifdef ECX_IA32
+  versionField.textContent += ` (IA-32)`;
+#elifdef HAVE_64BIT_BUILD
+  versionField.textContent += ` (64-bit)`;
+#else
+  versionField.textContent += ` (32-bit)`;
+#endif
 
 #ifdef MOZ_WIDGET_GTK
   // If Linux append the toolkit "(GTK2)" or "(GTK3)"
