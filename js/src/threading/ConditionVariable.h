@@ -111,7 +111,7 @@ private:
                 sizeof(pthread_cond_t) % sizeof(void*) == 0,
                 "pthread_cond_t must have pointer alignment");
 #else
-  void* platformData_[4];
+  void* platformData_[100];
 #endif
 };
 
