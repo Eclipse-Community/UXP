@@ -596,14 +596,11 @@ nsBrowserContentHandler.prototype = {
   },
 
   get startPage() {
-    var uri = Services.prefs.getComplexValue("browser.startup.homepage",
-                                             nsIPrefLocalizedString).data;
-    if (!uri) {
-      Services.prefs.clearUserPref("browser.startup.homepage");
-      uri = Services.prefs.getComplexValue("browser.startup.homepage",
-                                           nsIPrefLocalizedString).data;
+    try {
+      return Services.prefs.getCharPref("browser.startup.homepage") || "about:home";
+    } catch (e) {
+      return "about:home";
     }
-    return uri;
   },
 
   mFeatures: null,

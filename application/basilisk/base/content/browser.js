@@ -4887,11 +4887,9 @@ var gHomeButton = {
     } catch (e) {
     }
 
-    // use this if we can't find the pref
+    // Use about:home if the pref is missing or empty.
     if (!url) {
-      var configBundle = Services.strings
-                                 .createBundle("chrome://branding/locale/browserconfig.properties");
-      url = configBundle.GetStringFromName(this.prefDomain);
+      url = "about:home";
     }
 
     return url;
