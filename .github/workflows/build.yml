@@ -9,7 +9,133 @@ on:
 
 jobs:
   build:
+    name: ${{ matrix.product }} ${{ matrix.arch }}
     runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        include:
+          - product: lun3r
+            arch: win64
+            shell: amd64
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/lun3r-win64
+            objdir: obj-x86_64-lun3r-pc-mingw32
+            installer: lun3r-*.win64.installer.exe
+            portable: lun3r-*.win64.portable.7z
+            prepare_email: false
+
+          - product: lun3r
+            arch: win32
+            shell: i386
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/lun3r-win32
+            objdir: obj-i686-lun3r-pc-mingw32
+            installer: lun3r-*.win32.installer.exe
+            portable: lun3r-*.win32.portable.7z
+            prepare_email: false
+
+          - product: lun3r
+            arch: ia32
+            shell: i386
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/lun3r-ia32
+            objdir: obj-ia32-lun3r-pc-mingw32
+            installer: lun3r-*.ia32.installer.exe
+            portable: lun3r-*.ia32.portable.7z
+            prepare_email: false
+
+          - product: hydra
+            arch: win64
+            shell: amd64
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/hydra-win64
+            objdir: obj-x86_64-hydra-pc-mingw32
+            installer: hydra-*.win64.installer.exe
+            portable: hydra-*.win64.portable.7z
+            prepare_email: false
+
+          - product: hydra
+            arch: win32
+            shell: i386
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/hydra-win32
+            objdir: obj-i686-hydra-pc-mingw32
+            installer: hydra-*.win32.installer.exe
+            portable: hydra-*.win32.portable.7z
+            prepare_email: false
+
+          - product: hydra
+            arch: ia32
+            shell: i386
+            project: UXP
+            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/hydra-ia32
+            objdir: obj-ia32-hydra-pc-mingw32
+            installer: hydra-*.ia32.installer.exe
+            portable: hydra-*.ia32.portable.7z
+            prepare_email: false
+
+          - product: email
+            arch: win64
+            shell: amd64
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/email-win64
+            objdir: obj-x86_64-email-pc-mingw32
+            installer: eMail-*.win64.installer.exe
+            portable: eMail-*.win64.portable.7z
+            prepare_email: true
+
+          - product: email
+            arch: win32
+            shell: i386
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/email-win32
+            objdir: obj-i686-email-pc-mingw32
+            installer: eMail-*.win32.installer.exe
+            portable: eMail-*.win32.portable.7z
+            prepare_email: true
+
+          - product: email
+            arch: ia32
+            shell: i386
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/email-ia32
+            objdir: obj-ia32-email-pc-mingw32
+            installer: eMail-*.ia32.installer.exe
+            portable: eMail-*.ia32.portable.7z
+            prepare_email: true
+
+          - product: lun3r-navigator
+            arch: win64
+            shell: amd64
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win64
+            objdir: obj-x86_64-lun3rnav-pc-mingw32
+            installer: lun3r-navigator-*.win64.installer.exe
+            portable: lun3r-navigator-*.win64.portable.7z
+            prepare_email: true
+
+          - product: lun3r-navigator
+            arch: win32
+            shell: i386
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win32
+            objdir: obj-i686-lun3rnav-pc-mingw32
+            installer: lun3r-navigator-*.win32.installer.exe
+            portable: lun3r-navigator-*.win32.portable.7z
+            prepare_email: true
+
+          - product: lun3r-navigator
+            arch: ia32
+            shell: i386
+            project: eMail
+            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-ia32
+            objdir: obj-ia32-lun3rnav-pc-mingw32
+            installer: lun3r-navigator-*.ia32.installer.exe
+            portable: lun3r-navigator-*.ia32.portable.7z
+            prepare_email: true
 
     steps:
       - name: Download Goanna-Build
@@ -22,7 +148,7 @@ jobs:
           7z x -oC:\goanna-build goanna-build.7z
           del goanna-build.7z
 
-      - name: Checkout
+      - name: Checkout UXP
         shell: cmd
         run: |
           git config --global core.autocrlf false
@@ -34,127 +160,8 @@ jobs:
           git fetch --depth=1 --no-tags --prune --progress --no-recurse-submodules origin ${{ github.sha }}
           git checkout --force FETCH_HEAD
 
-      - name: Build Lun3r Win64
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-amd64.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/lun3r-win64"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win64 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-x86_64-lun3r-pc-mingw32\dist\lun3r-*.win64.installer.exe
-          archive: false
-
-      - name: Upload Win64 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-x86_64-lun3r-pc-mingw32\dist\lun3r-*.win64.portable.7z
-          archive: false
-
-      - name: Build Lun3r Win32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/lun3r-win32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-i686-lun3r-pc-mingw32\dist\lun3r-*.win32.installer.exe
-          archive: false
-
-      - name: Upload Win32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-i686-lun3r-pc-mingw32\dist\lun3r-*.win32.portable.7z
-          archive: false
-
-      - name: Build Lun3r IA-32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/lun3r-ia32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload IA-32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-ia32-lun3r-pc-mingw32\dist\lun3r-*.ia32.installer.exe
-          archive: false
-
-      - name: Upload IA-32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-ia32-lun3r-pc-mingw32\dist\lun3r-*.ia32.portable.7z
-          archive: false
-
-      - name: Build Hydra Win64
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-amd64.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/hydra-win64"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win64 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-x86_64-hydra-pc-mingw32\dist\hydra-*.win64.installer.exe
-          archive: false
-
-      - name: Upload Win64 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-x86_64-hydra-pc-mingw32\dist\hydra-*.win64.portable.7z
-          archive: false
-
-      - name: Build Hydra Win32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/hydra-win32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-i686-hydra-pc-mingw32\dist\hydra-*.win32.installer.exe
-          archive: false
-
-      - name: Upload Win32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-i686-hydra-pc-mingw32\dist\hydra-*.win32.portable.7z
-          archive: false
-
-      - name: Build Hydra IA-32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/UXP/mozconfigs/hydra-ia32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/UXP && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload IA-32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-ia32-hydra-pc-mingw32\dist\hydra-*.ia32.installer.exe
-          archive: false
-
-      - name: Upload IA-32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\UXP\obj-ia32-hydra-pc-mingw32\dist\hydra-*.ia32.portable.7z
-          archive: false
-
-      - name: Patch and config eMail
+      - name: Prepare eMail project
+        if: ${{ matrix.prepare_email }}
         shell: cmd
         run: |
           cd /d C:\goanna-build\Projects\UXP
@@ -167,122 +174,26 @@ jobs:
           git checkout --force FETCH_HEAD
           mklink /d platform ..\UXP
 
-      - name: Build eMail Win64
+      - name: Build
         shell: cmd
         run: |
           set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-amd64.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/email-win64"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
+          call C:\goanna-build\shell-${{ matrix.shell }}.bat /NOTTY
+          set "MOZCONFIG=${{ matrix.mozconfig }}"
+          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/${{ matrix.project }} && ./mach build && ./mach package && ./mach installer"
 
-      - name: Upload Win64 installer
+      - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
-          path: C:\goanna-build\Projects\eMail\obj-x86_64-email-pc-mingw32\dist\eMail-*.win64.installer.exe
+          name: ${{ matrix.product }}-${{ matrix.arch }}-installer
+          path: C:\goanna-build\Projects\${{ matrix.project }}\${{ matrix.objdir }}\dist\${{ matrix.installer }}
           archive: false
+          if-no-files-found: error
 
-      - name: Upload Win64 portable
+      - name: Upload portable
         uses: actions/upload-artifact@v7
         with:
-          path: C:\goanna-build\Projects\eMail\obj-x86_64-email-pc-mingw32\dist\eMail-*.win64.portable.7z
+          name: ${{ matrix.product }}-${{ matrix.arch }}-portable
+          path: C:\goanna-build\Projects\${{ matrix.project }}\${{ matrix.objdir }}\dist\${{ matrix.portable }}
           archive: false
-
-      - name: Build eMail Win32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/email-win32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-i686-email-pc-mingw32\dist\eMail-*.win32.installer.exe
-          archive: false
-
-      - name: Upload Win32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-i686-email-pc-mingw32\dist\eMail-*.win32.portable.7z
-          archive: false
-
-      - name: Build eMail IA-32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/email-ia32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload IA-32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-ia32-email-pc-mingw32\dist\eMail-*.ia32.installer.exe
-          archive: false
-
-      - name: Upload IA-32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-ia32-email-pc-mingw32\dist\eMail-*.ia32.portable.7z
-          archive: false
-
-      - name: Build Lun3r Navigator Win64
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-amd64.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win64"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win64 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-x86_64-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.win64.installer.exe
-          archive: false
-
-      - name: Upload Win64 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-x86_64-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.win64.portable.7z
-          archive: false
-
-      - name: Build Lun3r Navigator Win32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload Win32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-i686-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.win32.installer.exe
-          archive: false
-
-      - name: Upload Win32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-i686-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.win32.portable.7z
-          archive: false
-
-      - name: Build Lun3r Navigator IA-32
-        shell: cmd
-        run: |
-          set "PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;"
-          call C:\goanna-build\shell-i386.bat /NOTTY
-          set "MOZCONFIG=C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-ia32"
-          %MOZILLABUILD%msys\bin\bash --login -c "cd /c/goanna-build/Projects/eMail && ./mach build && ./mach package && ./mach installer"
-
-      - name: Upload IA-32 installer
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-ia32-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.ia32.installer.exe
-          archive: false
-
-      - name: Upload IA-32 portable
-        uses: actions/upload-artifact@v7
-        with:
-          path: C:\goanna-build\Projects\eMail\obj-ia32-lun3rnav-pc-mingw32\dist\lun3r-navigator-*.ia32.portable.7z
-          archive: false
+          if-no-files-found: error
