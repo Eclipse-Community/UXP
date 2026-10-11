@@ -22,7 +22,7 @@ MOZ_PKG_PLATFORM := $(TARGET_OS)-$(TARGET_CPU)
 # TARGET_OS/TARGET_CPU may be unintuitive, so we hardcode some special formats
 ifeq ($(OS_ARCH),WINNT)
 ifdef ECX_IA32
-MOZ_PKG_PLATFORM := IA-32
+MOZ_PKG_PLATFORM := ia32
 else
 ifeq ($(TARGET_CPU),x86_64)
 MOZ_PKG_PLATFORM := win64
