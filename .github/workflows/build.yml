@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 12
+      max-parallel: 6
       matrix:
         include:
           - product: lun3r
@@ -37,16 +37,6 @@ jobs:
             portable: lun3r-*.win32.portable.7z
             prepare_email: false
 
-          - product: lun3r
-            arch: ia32
-            shell: i386
-            project: UXP
-            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/lun3r-ia32
-            objdir: obj-ia32-lun3r-pc-mingw32
-            installer: lun3r-*.ia32.installer.exe
-            portable: lun3r-*.ia32.portable.7z
-            prepare_email: false
-
           - product: hydra
             arch: win64
             shell: amd64
@@ -67,36 +57,6 @@ jobs:
             portable: hydra-*.win32.portable.7z
             prepare_email: false
 
-          - product: hydra
-            arch: ia32
-            shell: i386
-            project: UXP
-            mozconfig: C:/goanna-build/Projects/UXP/mozconfigs/hydra-ia32
-            objdir: obj-ia32-hydra-pc-mingw32
-            installer: hydra-*.ia32.installer.exe
-            portable: hydra-*.ia32.portable.7z
-            prepare_email: false
-
-          - product: email
-            arch: win64
-            shell: amd64
-            project: eMail
-            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/email-win64
-            objdir: obj-x86_64-email-pc-mingw32
-            installer: eMail-*.win64.installer.exe
-            portable: eMail-*.win64.portable.7z
-            prepare_email: true
-
-          - product: email
-            arch: win32
-            shell: i386
-            project: eMail
-            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/email-win32
-            objdir: obj-i686-email-pc-mingw32
-            installer: eMail-*.win32.installer.exe
-            portable: eMail-*.win32.portable.7z
-            prepare_email: true
-
           - product: email
             arch: ia32
             shell: i386
@@ -105,26 +65,6 @@ jobs:
             objdir: obj-ia32-email-pc-mingw32
             installer: eMail-*.ia32.installer.exe
             portable: eMail-*.ia32.portable.7z
-            prepare_email: true
-
-          - product: lun3r-navigator
-            arch: win64
-            shell: amd64
-            project: eMail
-            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win64
-            objdir: obj-x86_64-lun3rnav-pc-mingw32
-            installer: lun3r-navigator-*.win64.installer.exe
-            portable: lun3r-navigator-*.win64.portable.7z
-            prepare_email: true
-
-          - product: lun3r-navigator
-            arch: win32
-            shell: i386
-            project: eMail
-            mozconfig: C:/goanna-build/Projects/eMail/mozconfigs/lun3rnav-win32
-            objdir: obj-i686-lun3rnav-pc-mingw32
-            installer: lun3r-navigator-*.win32.installer.exe
-            portable: lun3r-navigator-*.win32.portable.7z
             prepare_email: true
 
           - product: lun3r-navigator
