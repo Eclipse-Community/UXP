@@ -3457,7 +3457,7 @@ pref("font.name.cursive.x-math", "Comic Sans MS");
 // cleartype settings - false implies default system settings
 
 // use cleartype rendering for downloadable fonts (win xp only)
-pref("gfx.font_rendering.cleartype.use_for_downloadable_fonts", true);
+pref("gfx.font_rendering.cleartype.use_for_downloadable_fonts", false);
 
 // use cleartype rendering for all fonts always (win xp only)
 pref("gfx.font_rendering.cleartype.always_use_for_content", false);
